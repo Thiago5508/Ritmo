@@ -1,9 +1,15 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Link } from "expo-router";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-export default function Index() {
+export default function Home() {
   return (
-    <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
+    <View>
+      <Text>Página Home</Text>
+
+      <Link href="/(auth)/home">
+        <Text>Ir para login</Text>
+      </Link>
     </View>
   );
 }
