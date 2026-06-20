@@ -1,4 +1,6 @@
-# Welcome to your Expo app 👋
+# Welcome to the app Ritmo (nome provisorio ===resolvendo com o marketing)👋
+Frontend Mobile em React Native com Expo para integração com plataformas mobile android/ios 
+
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
