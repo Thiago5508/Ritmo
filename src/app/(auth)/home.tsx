@@ -17,7 +17,7 @@ export default function Login() {
 
   function handleLogin() {
     console.log("Login com:", email, password);
-    router.push("/");
+    router.push("/planilha");
   }
 
   return (
