@@ -283,18 +283,26 @@ function formatDate(text: string) {
           </View>
         </ScrollView>
 
-        {/* Bottom Tab Bar */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
-            <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
-        </View>
+{/* Bottom Tab Bar */}
+<View style={styles.tabBar}>
+
+  <Link href="/(auth)/mural" asChild>
+    <TouchableOpacity style={styles.tabItem}>
+      <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+    </TouchableOpacity>
+  </Link>
+
+  <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
+    <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+  </TouchableOpacity>
+
+<Link href="/(auth)/perfilpro" asChild>
+  <TouchableOpacity style={styles.tabItem}>
+    <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+  </TouchableOpacity>
+</Link>
+
+</View>
 
         {/* Modal de seleção do tipo de treino */}
         <Modal visible={iconModalVisible} transparent animationType="fade" onRequestClose={() => setIconModalVisible(false)}>
