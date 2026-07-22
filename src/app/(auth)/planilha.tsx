@@ -176,11 +176,15 @@ function formatDate(text: string) {
             </TouchableOpacity>
           </Link>
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-          <Image
-            source={require("../../../assets/images/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+<Link href="/(auth)/alunos" asChild>
+  <TouchableOpacity>
+    <Image
+      source={require("../../../assets/images/logo.png")}
+      style={styles.logo}
+      resizeMode="contain"
+    />
+  </TouchableOpacity>
+</Link>
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
