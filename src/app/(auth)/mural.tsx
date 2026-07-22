@@ -92,11 +92,15 @@ export default function MuralScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft} />
         <Text style={styles.headerTitle}>Mural de avisos</Text>
-        <Image
-          source={require("../../../assets/images/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+<Link href="/(auth)/alunos" asChild>
+  <TouchableOpacity>
+    <Image
+      source={require("../../../assets/images/logo.png")}
+      style={styles.logo}
+      resizeMode="contain"
+    />
+  </TouchableOpacity>
+</Link>
       </View>
 
       <KeyboardAvoidingView
