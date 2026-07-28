@@ -15,6 +15,9 @@ import {
   View,
 } from "react-native";
 
+// Futuramente virá do contexto de autenticação
+const isProfessor = false;
+
 interface Message {
   id: number;
   text: string;
@@ -24,22 +27,18 @@ interface Message {
 
 function getCurrentTime() {
   const now = new Date();
-  const h = String(now.getHours()).padStart(2, "0");
-  const m = String(now.getMinutes()).padStart(2, "0");
-  return `${h}:${m}`;
+  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
 function getCurrentDate() {
   const now = new Date();
-  const d = String(now.getDate()).padStart(2, "0");
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const y = now.getFullYear();
-  return `${d}/${m}/${y}`;
+  return `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
 }
 
 const INITIAL_MESSAGES: Message[] = [
   { id: 1, text: "Passando para lembrar que amanhã temos nosso primeiro encontro", time: "17:45", date: "05/06/2026" },
   { id: 2, text: "Marcado às 05:00 da manhã no mirante da treze!", time: "17:45", date: "05/06/2026" },
+  { id: 3, text: "O grande dia chegou", time: "17:46", date: "05/06/2026" },
 ];
 
 export default function MuralScreen() {
@@ -50,123 +49,88 @@ export default function MuralScreen() {
 
   const sendMessage = () => {
     if (!input.trim()) return;
-    const newMsg: Message = {
-      id: Date.now(),
-      text: input.trim(),
-      time: getCurrentTime(),
-      date: getCurrentDate(),
-    };
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages((prev) => [...prev, { id: Date.now(), text: input.trim(), time: getCurrentTime(), date: getCurrentDate() }]);
     setInput("");
   };
 
-  const askDelete = (id: number) => {
-    setDeleteTarget(id);
-    setConfirmVisible(true);
-  };
-
-  const confirmDelete = () => {
-    setMessages((prev) => prev.filter((m) => m.id !== deleteTarget));
-    setDeleteTarget(null);
-    setConfirmVisible(false);
-  };
-
-  const cancelDelete = () => {
-    setDeleteTarget(null);
-    setConfirmVisible(false);
-  };
+  const askDelete = (id: number) => { setDeleteTarget(id); setConfirmVisible(true); };
+  const confirmDelete = () => { setMessages((prev) => prev.filter((m) => m.id !== deleteTarget)); setDeleteTarget(null); setConfirmVisible(false); };
+  const cancelDelete = () => { setDeleteTarget(null); setConfirmVisible(false); };
 
   const groupedItems: { type: "date" | "message"; value?: string; item?: Message }[] = [];
   let lastDate = "";
   messages.forEach((msg) => {
-    if (msg.date !== lastDate) {
-      groupedItems.push({ type: "date", value: msg.date });
-      lastDate = msg.date;
-    }
+    if (msg.date !== lastDate) { groupedItems.push({ type: "date", value: msg.date }); lastDate = msg.date; }
     groupedItems.push({ type: "message", item: msg });
   });
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
+      {/* Header preto — mantém estilo original do mural */}
       <View style={styles.header}>
         <View style={styles.headerLeft} />
         <Text style={styles.headerTitle}>Mural de avisos</Text>
-<Link href="/(auth)/alunos" asChild>
-  <TouchableOpacity>
-    <Image
-      source={require("../../../assets/images/logo.png")}
-      style={styles.logo}
-      resizeMode="contain"
-    />
-  </TouchableOpacity>
-</Link>
+        <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={90}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={90}>
         <FlatList
           data={groupedItems}
           keyExtractor={(_, i) => String(i)}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {
-            if (item.type === "date") {
-              return <Text style={styles.dateLabel}>{item.value}</Text>;
-            }
+            if (item.type === "date") return <Text style={styles.dateLabel}>{item.value}</Text>;
             const msg = item.item!;
             return (
               <View style={styles.bubble}>
-                <TouchableOpacity style={styles.deleteBtn} onPress={() => askDelete(msg.id)}>
-                  <Ionicons name="close" size={14} color="#fff" />
-                </TouchableOpacity>
-                <Text style={styles.bubbleText}>{msg.text}</Text>
+                {isProfessor && (
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => askDelete(msg.id)}>
+                    <Ionicons name="close" size={14} color="#fff" />
+                  </TouchableOpacity>
+                )}
+                <Text style={[styles.bubbleText, !isProfessor && { marginRight: 0 }]}>{msg.text}</Text>
                 <Text style={styles.bubbleTime}>{msg.time}</Text>
               </View>
             );
           }}
         />
 
-        {/* Input */}
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Digite um aviso..."
-            placeholderTextColor="#bbb"
-            value={input}
-            onChangeText={setInput}
-            multiline
-          />
-          <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}>
-            <Ionicons name="play" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        {/* Input só para professor */}
+        {isProfessor && (
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite um aviso..."
+              placeholderTextColor="#bbb"
+              value={input}
+              onChangeText={setInput}
+              multiline
+            />
+            <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}>
+              <Ionicons name="play" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
 
-{/* Tab Bar */}
-<View style={styles.tabBar}>
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
+          <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+        </TouchableOpacity>
+        <Link href="/(auth)/planilha" asChild>
+          <TouchableOpacity style={styles.tabItem}>
+            <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+          </TouchableOpacity>
+        </Link>
+          <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
+            <TouchableOpacity style={styles.tabItem}>
+              <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            </TouchableOpacity>
+          </Link>
+      </View>
 
-  <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
-    <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-  </TouchableOpacity>
-
-  <Link href="/(auth)/planilha" asChild>
-    <TouchableOpacity style={styles.tabItem}>
-      <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-    </TouchableOpacity>
-  </Link>
-
-<Link href="/(auth)/perfilpro" asChild>
-  <TouchableOpacity style={styles.tabItem}>
-    <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-  </TouchableOpacity>
-</Link>
-
-</View>
-
-      {/* Modal confirmação */}
+      {/* Modal confirmação exclusão */}
       <Modal visible={confirmVisible} transparent animationType="fade" onRequestClose={cancelDelete}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -189,14 +153,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
   flex: { flex: 1 },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#1a1a1a", paddingHorizontal: 12, paddingVertical: 10 },
   headerLeft: { width: 44 },
   headerTitle: { fontFamily: "Inter_600SemiBold", fontSize: 16, color: "#fff" },
   logo: { width: 44, height: 44, borderRadius: 22 },

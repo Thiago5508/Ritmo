@@ -9,6 +9,7 @@ export default function AuthLayout() {
       <Stack.Screen name="mural" />
       <Stack.Screen name="perfilpro" />
       <Stack.Screen name="alunos" />
+      <Stack.Screen name="perfil-aluno" />
     </Stack>
   );
 }

@@ -2,15 +2,15 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React, { useState } from "react";
 import {
-    FlatList,
-    Image,
-    Modal,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface Aluno {
@@ -157,11 +157,11 @@ export default function AlunosScreen() {
             <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
           </TouchableOpacity>
         </Link>
-        <Link href="/(auth)/perfilpro" asChild>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
-        </Link>
+          <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
+            <TouchableOpacity style={styles.tabItem}>
+              <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            </TouchableOpacity>
+          </Link>
       </View>
 
       {/* Modal novo aluno */}
