@@ -1,3 +1,5 @@
+import { AuthProvider } from "../context/AuthContext";
+
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -20,14 +22,14 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <AuthProvider>
+      <Stack screenOptions={{  headerShown: false }} />
+    </AuthProvider>
+  );
 }

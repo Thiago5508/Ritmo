@@ -1,81 +1,68 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { useRouter, Link } from "expo-router";
 import React, { useState } from "react";
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useAuth } from "../../context/AuthContext";
 
-// Futuramente virá de uma API/banco de dados
 const STATS = {
   total: 91,
+  sem_nivel: 0,
   iniciantes: 32,
   intermediarios: 41,
   avancados: 18,
 };
 
 export default function PerfilProfessor() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [nomeAssessoria, setNomeAssessoria] = useState("Pulsação Assessoria Esportiva");
   const [editingNome, setEditingNome] = useState(false);
   const [nomeDraft, setNomeDraft] = useState(nomeAssessoria);
 
-  const saveNome = () => {
-    setNomeAssessoria(nomeDraft);
-    setEditingNome(false);
-  };
-
-  const cancelNome = () => {
-    setNomeDraft(nomeAssessoria);
-    setEditingNome(false);
-  };
+  const saveNome = () => { setNomeAssessoria(nomeDraft); setEditingNome(false); };
+  const cancelNome = () => { setNomeDraft(nomeAssessoria); setEditingNome(false); };
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
+
+      {/* Header unificado */}
       <View style={styles.header}>
-          <Link href="/home" asChild>
-            <TouchableOpacity style={styles.backBtn}>
-              <Ionicons name="exit-outline" size={22} color="#333" />
-            </TouchableOpacity>
-          </Link>
-          <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-<Link href="/(auth)/alunos" asChild>
-  <TouchableOpacity>
-    <Image
-      source={require("../../../assets/images/logo.png")}
-      style={styles.logo}
-      resizeMode="contain"
-    />
-  </TouchableOpacity>
-</Link>
+        <Link href="/(auth)/planilha" asChild>
+          <TouchableOpacity style={styles.backBtn}>
+            <Ionicons name="exit-outline" size={22} color="#333" />
+          </TouchableOpacity>
+        </Link>
+        <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
+        <Link href="/(auth)/alunos" asChild>
+          <TouchableOpacity>
+            <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
+          </TouchableOpacity>
+        </Link>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
-        {/* Card logo + stats */}
         <View style={styles.card}>
           <View style={styles.cardTop}>
-            {/* Logo */}
             <View style={styles.logoBox}>
-              <Image
-                source={require("../../../assets/images/logo.png")}
-                style={styles.logoLarge}
-                resizeMode="contain"
-              />
+              <Image source={require("../../../assets/images/logo.png")} style={styles.logoLarge} resizeMode="contain" />
               <TouchableOpacity style={styles.editLogoBtn}>
                 <Feather name="edit-2" size={14} color="#fff" />
               </TouchableOpacity>
             </View>
-
-            {/* Estatísticas */}
             <View style={styles.statsBox}>
               <Text style={styles.statsTotal}>{STATS.total} Alunos</Text>
+              {STATS.sem_nivel > 0 && (
+                <Text style={styles.statItem}>{STATS.sem_nivel} Sem nível</Text>
+              )}
               <Text style={styles.statItem}>{STATS.iniciantes} Iniciantes</Text>
               <Text style={styles.statItem}>{STATS.intermediarios} Intermediários</Text>
               <Text style={styles.statItem}>{STATS.avancados} Avançados</Text>
@@ -83,20 +70,13 @@ export default function PerfilProfessor() {
           </View>
         </View>
 
-        {/* Card nome da assessoria */}
         <View style={styles.card}>
           <View style={styles.nomeRow}>
             {editingNome ? (
-              <TextInput
-                style={styles.nomeInput}
-                value={nomeDraft}
-                onChangeText={setNomeDraft}
-                autoFocus
-              />
+              <TextInput style={styles.nomeInput} value={nomeDraft} onChangeText={setNomeDraft} autoFocus />
             ) : (
               <Text style={styles.nomeText}>{nomeAssessoria}</Text>
             )}
-
             {editingNome ? (
               <View style={styles.editActions}>
                 <TouchableOpacity onPress={cancelNome}>
@@ -113,7 +93,6 @@ export default function PerfilProfessor() {
             )}
           </View>
         </View>
-
       </ScrollView>
 
       {/* Tab Bar */}

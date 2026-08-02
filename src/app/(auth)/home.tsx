@@ -1,5 +1,6 @@
+import { useAuth } from "../../context/AuthContext"; // era "useaAuth" e "../..context"
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState } from "react"; // estava faltando
 import {
   Image,
   ImageBackground,
@@ -7,17 +8,23 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function Login() {
+  const { login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
 
   function handleLogin() {
-    console.log("Login com:", email, password);
-    router.push("/planilha");
+    const sucesso = login(telefone, senha);
+    if (sucesso) {
+      router.push("/(auth)/planilha");
+    } else {
+      setErro("Telefone ou senha incorretos.");
+    }
   }
 
   return (
@@ -32,29 +39,32 @@ export default function Login() {
           style={styles.logo}
           resizeMode="contain"
         />
+
         <TextInput
           style={styles.input}
           placeholder="Digite seu telefone (apenas números)"
           placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
+          value={telefone}        // era "email"
+          onChangeText={setTelefone} // era "setEmail"
           autoCapitalize="none"
-          keyboardType="email-address"
+          keyboardType="numeric"  // era "email-address"
         />
 
         <TextInput
           style={styles.input}
           placeholder="Digite sua senha"
           placeholderTextColor="#999"
-          value={password}
-          onChangeText={setPassword}
+          value={senha}           // era "password"
+          onChangeText={setSenha} // era "setPassword"
           secureTextEntry
         />
+
+        {/* Mensagem de erro */}
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
-
       </View>
     </ImageBackground>
   );
@@ -71,17 +81,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "rgba(0,0,0,0.4)", // escurece a imagem para destacar o conteúdo
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
-    logo: {
+  logo: {
     width: 199,
     marginBottom: 24,
-  },
-  title: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 28,
-    marginBottom: 24,
-    color: "#fff",
   },
   input: {
     fontFamily: "Inter_400Regular",
@@ -92,6 +96,13 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 9,
     backgroundColor: "#fff",
+  },
+  erro: {
+    fontFamily: "Inter_400Regular",
+    color: "#E63946",
+    fontSize: 13,
+    marginBottom: 8,
+    alignSelf: "flex-start",
   },
   button: {
     width: "100%",
@@ -105,10 +116,5 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     color: "#fff",
     fontSize: 16,
-  },
-  link: {
-    fontFamily: "Inter_500Medium",
-    marginTop: 20,
-    color: "#fff",
   },
 });

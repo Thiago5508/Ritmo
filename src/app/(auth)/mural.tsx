@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   FlatList,
   Image,
@@ -14,9 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// Futuramente virá do contexto de autenticação
-const isProfessor = false;
 
 interface Message {
   id: number;
@@ -42,6 +40,10 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 
 export default function MuralScreen() {
+  const { user } = useAuth();
+  const isProfessor = user?.isProfessor ?? false;
+
+  // <- adicione esses estados que estão faltando
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);

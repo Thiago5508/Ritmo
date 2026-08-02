@@ -1,6 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { useRouter, Link } from "expo-router";
 import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   Image,
   SafeAreaView,
@@ -13,6 +14,9 @@ import {
 } from "react-native";
 
 export default function PerfilAluno() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const nomeAluno = user?.nome ?? "";
   const [textoLivre, setTextoLivre] = useState("🥇 10k");
   const [frase, setFrase] = useState('"O sucesso é a soma de pequenos esforços repetidos dia após dia."');
   const [autor, setAutor] = useState("~ Aristóteles");
@@ -39,11 +43,15 @@ export default function PerfilAluno() {
     <SafeAreaView style={styles.safe}>
       {/* Header */}
       <View style={styles.header}>
-        <Link href="/(auth)/planilha" asChild>
-          <TouchableOpacity style={styles.backBtn}>
-            <Ionicons name="exit-outline" size={22} color="#333" />
-          </TouchableOpacity>
-        </Link>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => {
+            logout();
+            router.replace("/(auth)/home");
+          }}
+        >
+          <Ionicons name="exit-outline" size={22} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
         <Link href="/(auth)/alunos" asChild>
           <TouchableOpacity>
@@ -67,7 +75,7 @@ export default function PerfilAluno() {
           </TouchableOpacity>
           {/* Nome sobre a foto */}
           <View style={styles.coverName}>
-            <Text style={styles.coverNameText}>Raíssa Fernanda Lima</Text>
+            <Text style={styles.coverNameText}>{nomeAluno}</Text>
           </View>
         </View>
 

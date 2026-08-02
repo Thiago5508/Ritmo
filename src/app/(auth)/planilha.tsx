@@ -1,6 +1,7 @@
+import { useRouter, Link } from "expo-router";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Link } from "expo-router";
 import React, { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   Image,
   ImageBackground,
@@ -13,12 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// Futuramente virá do contexto de autenticação
-const isProfessor = false;
-const nivelAluno = "iniciante"; // "sem_nivel" | "iniciante" | "intermediario" | "avancado"
-const nomeAluno = "Raíssa Fernanda Lima";
-const notificacoes = 3; // badge do sininho
 
 const DAYS = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
 
@@ -79,6 +74,13 @@ function formatDate(text: string) {
 }
 
 export default function PlanilhaScreen() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const isProfessor = user?.isProfessor ?? false;
+  const nivelAluno = user?.nivel ?? "iniciante";
+  const nomeAluno = user?.nome ?? "";
+  const notificacoes = user?.notificacoes ?? 0;
+
   const INITIAL_LEVEL_INDEX = isProfessor
     ? 0
     : LEVELS_DISPONIVEIS.findIndex((l) => l.key === nivelAluno);
@@ -159,11 +161,15 @@ export default function PlanilhaScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Link href="/(auth)/home" asChild>
-            <TouchableOpacity style={styles.backBtn}>
-              <Ionicons name="exit-outline" size={22} color="#333" />
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              logout();
+              router.replace("/(auth)/home");
+            }}
+          >
+            <Ionicons name="exit-outline" size={22} color="#333" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
           <Link href="/(auth)/alunos" asChild>
             <TouchableOpacity>
