@@ -1,5 +1,4 @@
-import { AuthProvider } from "../context/AuthContext";
-
+import { AuthProvider } from "../../context/AuthContext";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -29,7 +28,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <Stack screenOptions={{  headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }} />
     </AuthProvider>
   );
 }
