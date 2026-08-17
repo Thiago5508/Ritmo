@@ -1,9 +1,10 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter, Link } from "expo-router";
 import React, { useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Image,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,11 +23,25 @@ const STATS = {
 };
 
 export default function PerfilProfessor() {
+  const [logoAssessoria, setLogoAssessoria] = useState<string | null>(null);
   const router = useRouter();
   const { user, logout } = useAuth();
   const [nomeAssessoria, setNomeAssessoria] = useState("Pulsação Assessoria Esportiva");
   const [editingNome, setEditingNome] = useState(false);
   const [nomeDraft, setNomeDraft] = useState(nomeAssessoria);
+
+  const editarLogo = async () => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ["images"],
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    setLogoAssessoria(result.assets[0].uri);
+  }
+};
 
   const saveNome = () => { setNomeAssessoria(nomeDraft); setEditingNome(false); };
   const cancelNome = () => { setNomeDraft(nomeAssessoria); setEditingNome(false); };
@@ -34,29 +49,26 @@ export default function PerfilProfessor() {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header unificado */}
-      <View style={styles.header}>
-        <Link href="/(auth)/planilha" asChild>
-          <TouchableOpacity style={styles.backBtn}>
-            <Ionicons name="exit-outline" size={22} color="#333" />
-          </TouchableOpacity>
-        </Link>
-        <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-        <Link href="/(auth)/alunos" asChild>
-          <TouchableOpacity>
-            <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
-          </TouchableOpacity>
-        </Link>
-      </View>
-
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <View style={styles.cardTop}>
             <View style={styles.logoBox}>
-              <Image source={require("../../../assets/images/logo.png")} style={styles.logoLarge} resizeMode="contain" />
-              <TouchableOpacity style={styles.editLogoBtn}>
-                <Feather name="edit-2" size={14} color="#fff" />
-              </TouchableOpacity>
+              <Image
+                  source={
+                    logoAssessoria
+                      ? { uri: logoAssessoria }
+                      : require("../../../assets/images/logo.png")
+                  }
+                  style={styles.logoLarge}
+                  resizeMode="contain"
+                />
+
+                <TouchableOpacity
+                  style={styles.editLogoBtn}
+                  onPress={editarLogo}
+                >
+                  <Feather name="edit-2" size={14} color="#fff" />
+                </TouchableOpacity>
             </View>
             <View style={styles.statsBox}>
               <Text style={styles.statsTotal}>{STATS.total} Alunos</Text>
@@ -126,6 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 12,
     paddingVertical: 10,
+    borderRadius: 6,
   },
   backBtn: {
     width: 38,
@@ -253,6 +266,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  tabItemActive: { borderWidth: 2, borderColor: "#ED5514" },
+  tabItemActive: { borderWidth: 1, borderColor: "#ED5514" },
   tabIcon: { width: 25 },
 });

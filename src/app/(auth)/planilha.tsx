@@ -2,11 +2,11 @@ import { useRouter, Link } from "expo-router";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Image,
   ImageBackground,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -168,7 +168,7 @@ export default function PlanilhaScreen() {
               router.replace("/(auth)/home");
             }}
           >
-            <Ionicons name="exit-outline" size={22} color="#333" />
+            <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
           <Link href="/(auth)/alunos" asChild>
@@ -420,10 +420,20 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
 
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    backgroundColor: "#fff", paddingHorizontal: 12, paddingVertical: 10,
-    marginHorizontal: 16, marginTop: 20, borderRadius: 6,
-    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between",
+    backgroundColor: "#fff", 
+    paddingHorizontal: 8, 
+    paddingVertical: 5,
+    marginHorizontal: 16, 
+    marginTop: 20, 
+    borderRadius: 6,
+    shadowColor: "#000", 
+    shadowOpacity: 0.06, 
+    shadowRadius: 8, 
+    shadowOffset: { width: 0, height: 2 }, 
+    elevation: 3,
   },
   backBtn: { width: 38, height: 38, borderRadius: 6, borderWidth: 1, borderColor: "#ddd", alignItems: "center", justifyContent: "center" },
   headerTitle: { flex: 1, textAlign: "center", fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#333", marginHorizontal: 8 },
@@ -466,7 +476,7 @@ const styles = StyleSheet.create({
 
   tabBar: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", paddingVertical: 12, backgroundColor: "#fff" },
   tabItem: { width: 50, height: 50, backgroundColor: "#fff", borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
-  tabItemActive: { borderWidth: 2, borderColor: "#ED5514" },
+  tabItemActive: { borderWidth: 1, borderColor: "#ED5514" },
   tabIcon: { width: 25 },
   badge: { position: "absolute", top: -4, right: -4, backgroundColor: "#E63946", borderRadius: 10, minWidth: 16, height: 16, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
   badgeText: { fontFamily: "Inter_700Bold", fontSize: 10, color: "#fff" },

@@ -1,11 +1,11 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   FlatList,
   Image,
   Modal,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
@@ -83,24 +83,16 @@ export default function AlunosScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => {
-              logout();
-              router.replace("/(auth)/home");
-            }}
-          >
-            <Ionicons name="exit-outline" size={22} color="#333" />
-          </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-        <Image
-          source={require("../../../assets/images/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
+        {/* Header */}
+        <View style={styles.header}>
+
+          <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
+          <Link href="/(auth)/alunos" asChild>
+            <TouchableOpacity>
+              <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
+            </TouchableOpacity>
+          </Link>
+        </View>
 
       {/* Barra de ações */}
       <View style={styles.actionsRow}>

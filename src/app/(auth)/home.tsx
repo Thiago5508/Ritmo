@@ -1,9 +1,13 @@
-import { useAuth } from "../../context/AuthContext"; // era "useaAuth" e "../..context"
+import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "expo-router";
-import React, { useState } from "react"; // estava faltando
+import React, { useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Image,
-  ImageBackground,
   StyleSheet,
   Text,
   TextInput,
@@ -14,12 +18,14 @@ import {
 export default function Login() {
   const { login } = useAuth();
   const router = useRouter();
+
   const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
 
   function handleLogin() {
     const sucesso = login(telefone, senha);
+
     if (sucesso) {
       router.push("/(auth)/planilha");
     } else {
@@ -28,65 +34,124 @@ export default function Login() {
   }
 
   return (
-    <ImageBackground
-      source={require("../../../assets/images/background.jpg")}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay}>
-        <Image
-          source={require("../../../assets/images/logo-login.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+    <SafeAreaView style={styles.safe}>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Digite seu telefone (apenas números)"
-          placeholderTextColor="#999"
-          value={telefone}        // era "email"
-          onChangeText={setTelefone} // era "setEmail"
-          autoCapitalize="none"
-          keyboardType="numeric"  // era "email-address"
-        />
+      {/* FUNDO */}
+      <Image
+        source={require("../../../assets/images/background.jpg")}
+        style={styles.background}
+        resizeMode="cover"
+      />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Digite sua senha"
-          placeholderTextColor="#999"
-          value={senha}           // era "password"
-          onChangeText={setSenha} // era "setPassword"
-          secureTextEntry
-        />
+      {/* ESCURECIMENTO */}
+      <View style={styles.overlay} />
 
-        {/* Mensagem de erro */}
-        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+      {/* CONTEÚDO */}
+      <KeyboardAvoidingView
+        style={styles.keyboard}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.form}>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+            <Image
+              source={require("../../../assets/images/logo-login.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Digite seu telefone (apenas números)"
+              placeholderTextColor="#999"
+              value={telefone}
+              onChangeText={setTelefone}
+              autoCapitalize="none"
+              keyboardType="phone-pad"
+              returnKeyType="next"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Digite sua senha"
+              placeholderTextColor="#999"
+              value={senha}
+              onChangeText={setSenha}
+              secureTextEntry
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+
+            {erro ? (
+              <Text style={styles.erro}>
+                {erro}
+              </Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleLogin}
+            >
+              <Text style={styles.buttonText}>
+                Entrar
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  safe: {
     flex: 1,
+    backgroundColor: "#000",
+  },
+
+  background: {
+    position: "absolute",
     width: "100%",
     height: "100%",
+    top: 0,
+    left: 0,
   },
+
   overlay: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    top: 0,
+    left: 0,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
-  logo: {
-    width: 199,
-    marginBottom: 24,
+
+  keyboard: {
+    flex: 1,
   },
+
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+
+  form: {
+    width: "100%",
+    alignItems: "center",
+  },
+
+  logo: {
+    height: 200,
+    marginBottom: 60,
+  },
+
   input: {
     fontFamily: "Inter_400Regular",
     width: "100%",
@@ -97,6 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 9,
     backgroundColor: "#fff",
   },
+
   erro: {
     fontFamily: "Inter_400Regular",
     color: "#E63946",
@@ -104,6 +170,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     alignSelf: "flex-start",
   },
+
   button: {
     width: "100%",
     backgroundColor: "#ED5514",
@@ -112,6 +179,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
+
   buttonText: {
     fontFamily: "Inter_600SemiBold",
     color: "#fff",
