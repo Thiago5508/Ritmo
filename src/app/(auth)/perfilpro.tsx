@@ -14,18 +14,19 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 
-const STATS = {
-  total: 91,
-  sem_nivel: 0,
-  iniciantes: 32,
-  intermediarios: 41,
-  avancados: 18,
-};
+const { user, alunos, cadastrarAluno } = useAuth();
 
 export default function PerfilProfessor() {
   const [logoAssessoria, setLogoAssessoria] = useState<string | null>(null);
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, alunos } = useAuth();
+  const STATS = {
+  total: alunos.length,
+  sem_nivel: alunos.filter((a) => a.nivel === "Sem nível").length,
+  iniciantes: alunos.filter((a) => a.nivel === "Iniciante").length,
+  intermediarios: alunos.filter((a) => a.nivel === "Intermediário").length,
+  avancados: alunos.filter((a) => a.nivel === "Avançado").length,
+};
   const [nomeAssessoria, setNomeAssessoria] = useState("Pulsação Assessoria Esportiva");
   const [editingNome, setEditingNome] = useState(false);
   const [nomeDraft, setNomeDraft] = useState(nomeAssessoria);
