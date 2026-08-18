@@ -4,10 +4,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
   StyleSheet,
   Text,
   TextInput,
