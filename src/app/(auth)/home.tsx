@@ -1,4 +1,3 @@
-import { useAuth } from "../../context/AuthContext"; // era "useaAuth" e "../..context"
 import { useRouter } from "expo-router";
 import React, { useState } from "react"; // estava faltando
 import {
@@ -10,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useAuth } from "../../context/AuthContext"; // era "useaAuth" e "../..context"
 
 export default function Login() {
   const { login } = useAuth();
