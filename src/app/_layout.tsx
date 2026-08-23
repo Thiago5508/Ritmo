@@ -1,4 +1,4 @@
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider, useAuth } from "../context/AuthContext";
 
 import {
   Inter_400Regular,
@@ -12,6 +12,19 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
+
+
+function AppNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }} />
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -29,7 +42,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <Stack screenOptions={{  headerShown: false }} />
+      <AppNavigator />
     </AuthProvider>
   );
 }

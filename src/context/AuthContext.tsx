@@ -1,84 +1,122 @@
-import React, { createContext, useContext, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { API_URL } from "../config/api";
 
 export interface User {
-  id: number;
+  id: string;
   nome: string;
   isProfessor: boolean;
-  nivel: "sem_nivel" | "iniciante" | "intermediario" | "avancado";
-  notificacoes: number;
+  nivel: "iniciante" | "intermediario" | "avancado";
   telefone: string;
-  senha: string;
 }
 
-export interface Aluno {
-  id: number;
-  nome: string;
-  nivel: "Sem nível" | "Iniciante" | "Intermediário" | "Avançado";
-  foto: string | null;
-  telefone: string;
-}
+
 
 interface AuthContextData {
   user: User | null;
-  alunos: Aluno[];
-  login: (telefone: string, senha: string) => boolean;
-  logout: () => void;
-  cadastrarAluno: (novoUsuario: User, alunoVisual: Aluno) => void;
+  login: (telefone: string, senha: string) => Promise<boolean>;
+  loading: boolean;
+  logout: () => Promise<void>;
 }
 
-const USUARIOS: User[] = [
-  {
-    id: 1,
-    nome: "Professor Pulsação",
-    isProfessor: true,
-    nivel: "avancado",
-    notificacoes: 0,
-    telefone: "79999999999",
-    senha: "admin123",
-  },
-];
-
-const INITIAL_ALUNOS: Aluno[] = [
-  { id: 1, nome: "João Paulo Correia Santos", nivel: "Iniciante", foto: null, telefone: "" },
-  { id: 2, nome: "Anna Luiza Souza", nivel: "Intermediário", foto: null, telefone: "" },
-  { id: 3, nome: "Wagner Alves Pereira", nivel: "Avançado", foto: null, telefone: "" },
-  { id: 4, nome: "Júlio Quaresma Mendonça", nivel: "Iniciante", foto: null, telefone: "" },
-  { id: 5, nome: "Daiane Alencar Vianna", nivel: "Intermediário", foto: null, telefone: "" },
-  { id: 6, nome: "Hebert Aguiar Feitosa", nivel: "Avançado", foto: null, telefone: "" },
-  { id: 7, nome: "Lucas Andrade Santos", nivel: "Iniciante", foto: null, telefone: "" },
-  { id: 8, nome: "Sthephanie Lourenço Neves", nivel: "Intermediário", foto: null, telefone: "" },
-  { id: 9, nome: "Raíssa Fernanda Lima", nivel: "Iniciante", foto: null, telefone: "" },
-  { id: 10, nome: "Edilson Couto Garcia", nivel: "Avançado", foto: null, telefone: "" },
-  { id: 11, nome: "Heric Brito Souza", nivel: "Intermediário", foto: null, telefone: "" },
-];
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [usuarios, setUsuarios] = useState<User[]>(USUARIOS);
-  const [alunos, setAlunos] = useState<Aluno[]>(INITIAL_ALUNOS);
+  const [loading, setLoading] = useState(true);
 
-  const login = (telefone: string, senha: string): boolean => {
-    const encontrado = usuarios.find(
-      (u) => u.telefone === telefone && u.senha === senha
-    );
-    if (encontrado) {
-      setUser(encontrado);
-      return true;
+  useEffect(() => {
+  async function restoreSession() {
+    try {
+      const token = await SecureStore.getItemAsync("auth_token");
+
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/auth/me`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        await SecureStore.deleteItemAsync("auth_token");
+        return;
+      }
+
+      const data = await response.json();
+
+      setUser(data.user);
+    } catch (error) {
+      console.error("[AUTH] Erro ao restaurar sessão:", error);
+    } finally {
+      setLoading(false);
     }
-    return false;
+  }
+
+  restoreSession();
+}, []);
+
+  const login = async (
+    telefone: string,
+    senha: string
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          telefone,
+          senha,
+        }),
+      });
+      console.log("[AUTH] Status do login:", response.status);
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data: {
+        token: string;
+        user: User;
+      } = await response.json();
+
+      console.log("[AUTH] Dados do usuário:", data);
+      await SecureStore.setItemAsync("auth_token", data.token);
+
+      
+      const token = await SecureStore.getItemAsync("auth_token");
+      console.log("[AUTH] Token persistido:", Boolean(token));
+      
+      setUser(data.user);
+
+      return true;
+    } catch (error) {
+      console.error("Erro ao realizar login:", error);
+      return false;
+    }
   };
 
-  const logout = () => setUser(null);
+  const logout = async () => {
+  await SecureStore.deleteItemAsync("auth_token");
+  setUser(null);
+};
 
-  const cadastrarAluno = (novoUsuario: User, alunoVisual: Aluno) => {
-    setUsuarios((prev) => [...prev, novoUsuario]);
-    setAlunos((prev) => [...prev, alunoVisual]);
-  };
 
   return (
-    <AuthContext.Provider value={{ user, alunos, login, logout, cadastrarAluno }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

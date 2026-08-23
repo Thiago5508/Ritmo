@@ -1,8 +1,6 @@
-import { useRouter, Link } from "expo-router";
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Image,
   ImageBackground,
@@ -14,16 +12,27 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 
-const DAYS = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
+type TrainingIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+type Day = "SEG" | "TER" | "QUA" | "QUI" | "SEX" | "SAB" | "DOM";
+type LevelKey = "sem_nivel" | "iniciante" | "intermediario" | "avancado";
+type Workout = { icon: TrainingIconName; desc1: string };
+type WeekSchedule = Record<Day, Workout>;
+type Schedule = Record<LevelKey, WeekSchedule>;
+type EventDraft = { name: string; time: string; date: string; desc: string };
+type TrainingEvent = EventDraft & { id: number };
 
-const EVENTS = [
+const DAYS: Day[] = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
+
+const EVENTS: Omit<TrainingEvent, "time" | "desc">[] = [
   { id: 1, name: "Circuito TV Atalaia", date: "15.06.2026" },
   { id: 2, name: "Night Run Aracaju", date: "20.07.2026" },
   { id: 3, name: "2° Maratona de Aracaju", date: "31.10.2026" },
 ];
 
-const TRAINING_ICONS = [
+const TRAINING_ICONS: { key: string; label: string; icon: TrainingIconName }[] = [
   { key: "run", label: "Corrida", icon: "run" },
   { key: "bike", label: "Ciclismo", icon: "bike" },
   { key: "swim", label: "Natação", icon: "swim" },
@@ -31,7 +40,7 @@ const TRAINING_ICONS = [
   { key: "weight", label: "Musculação", icon: "dumbbell" },
 ];
 
-const LEVELS = [
+const LEVELS: { key: LevelKey; label: string; icon: number }[] = [
   { key: "sem_nivel", label: "Sem nível", icon: require("../../../assets/images/iniciante_icon.png") },
   { key: "iniciante", label: "Iniciante", icon: require("../../../assets/images/iniciante_icon.png") },
   { key: "intermediario", label: "Intermediário", icon: require("../../../assets/images/intermediario_icon.png") },
@@ -45,20 +54,22 @@ const LEVELS_DISPONIVEIS = LEVELS.filter((l) => {
   return true;
 });
 
-const buildEmptyWeek = () =>
-  DAYS.reduce((acc, day) => {
+const buildEmptyWeek = (): WeekSchedule => {
+  const week = DAYS.reduce<Partial<WeekSchedule>>((acc, day) => {
     acc[day] = { icon: "run", desc1: "" };
     return acc;
   }, {});
+  return week as WeekSchedule;
+};
 
-const INITIAL_SCHEDULE = {
+const INITIAL_SCHEDULE: Schedule = {
   sem_nivel: { ...buildEmptyWeek() },
   iniciante: { ...buildEmptyWeek(), QUA: { icon: "run", desc1: "5×100 desaquecimento\n2km na calma!" } },
   intermediario: { ...buildEmptyWeek() },
   avancado: { ...buildEmptyWeek() },
 };
 
-const EMPTY_EVENT = { name: "", time: "", date: "", desc: "" };
+const EMPTY_EVENT: EventDraft = { name: "", time: "", date: "", desc: "" };
 
 function formatTime(text: string) {
   const digits = text.replace(/\D/g, "").slice(0, 4);
@@ -79,22 +90,23 @@ export default function PlanilhaScreen() {
   const isProfessor = user?.isProfessor ?? false;
   const nivelAluno = user?.nivel ?? "iniciante";
   const nomeAluno = user?.nome ?? "";
-  const notificacoes = user?.notificacoes ?? 0;
 
   const INITIAL_LEVEL_INDEX = isProfessor
     ? 0
     : LEVELS_DISPONIVEIS.findIndex((l) => l.key === nivelAluno);
 
-  const [selectedDay, setSelectedDay] = useState("QUA");
+  const [selectedDay, setSelectedDay] = useState<Day>("QUA");
   const [levelIndex, setLevelIndex] = useState(INITIAL_LEVEL_INDEX >= 0 ? INITIAL_LEVEL_INDEX : 0);
   const [schedule, setSchedule] = useState(INITIAL_SCHEDULE);
   const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState(null);
+  const [draft, setDraft] = useState<Workout | null>(null);
   const [iconModalVisible, setIconModalVisible] = useState(false);
-  const [events, setEvents] = useState(EVENTS.map((e) => ({ ...e, time: "", desc: "" })));
+  const [events, setEvents] = useState<TrainingEvent[]>(
+    EVENTS.map((event) => ({ ...event, time: "", desc: "" }))
+  );
   const [eventModalVisible, setEventModalVisible] = useState(false);
-  const [eventDraft, setEventDraft] = useState(EMPTY_EVENT);
-  const [editingEventId, setEditingEventId] = useState(null);
+  const [eventDraft, setEventDraft] = useState<EventDraft>(EMPTY_EVENT);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
 
   const currentLevel = LEVELS_DISPONIVEIS[levelIndex];
   const currentWorkout = schedule[currentLevel.key][selectedDay];
@@ -113,6 +125,7 @@ export default function PlanilhaScreen() {
   const cancelEditing = () => { setIsEditing(false); setDraft(null); };
 
   const saveEditing = () => {
+    if (!draft) return;
     setSchedule((prev) => ({
       ...prev,
       [currentLevel.key]: { ...prev[currentLevel.key], [selectedDay]: draft },
@@ -121,9 +134,9 @@ export default function PlanilhaScreen() {
     setDraft(null);
   };
 
-  const selectTrainingIcon = (iconName) => {
+  const selectTrainingIcon = (iconName: TrainingIconName) => {
     if (isEditing) {
-      setDraft((prev) => ({ ...prev, icon: iconName }));
+      setDraft((prev) => (prev ? { ...prev, icon: iconName } : prev));
     } else {
       setSchedule((prev) => ({
         ...prev,
@@ -137,7 +150,7 @@ export default function PlanilhaScreen() {
   };
 
   const openNewEvent = () => { setEventDraft(EMPTY_EVENT); setEditingEventId(null); setEventModalVisible(true); };
-  const openEditEvent = (event) => { setEventDraft({ name: event.name, time: event.time, date: event.date, desc: event.desc }); setEditingEventId(event.id); setEventModalVisible(true); };
+  const openEditEvent = (event: TrainingEvent) => { setEventDraft({ name: event.name, time: event.time, date: event.date, desc: event.desc }); setEditingEventId(event.id); setEventModalVisible(true); };
 
   const saveEvent = () => {
     if (editingEventId === null) {
@@ -165,7 +178,7 @@ export default function PlanilhaScreen() {
             style={styles.backBtn}
             onPress={() => {
               logout();
-              router.replace("/(auth)/home");
+              router.replace("/login");
             }}
           >
             <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
@@ -252,8 +265,8 @@ export default function PlanilhaScreen() {
                     multiline
                     numberOfLines={3}
                     style={styles.workoutInput}
-                    value={draft.desc1}
-                    onChangeText={(text) => setDraft((prev) => ({ ...prev, desc1: text }))}
+                    value={draft?.desc1 ?? ""}
+                    onChangeText={(text) => setDraft((prev) => (prev ? { ...prev, desc1: text } : prev))}
                     placeholder="Descrição do treino"
                     placeholderTextColor="#999"
                   />
@@ -301,11 +314,9 @@ export default function PlanilhaScreen() {
             <TouchableOpacity style={styles.tabItem}>
               <View>
                 <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-                {notificacoes > 0 && !isProfessor && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{notificacoes}</Text>
-                  </View>
-                )}
+
+                 {/* colocar as notificaçoes aqui */}
+                 
               </View>
             </TouchableOpacity>
           </Link>

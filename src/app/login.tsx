@@ -1,18 +1,18 @@
-import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../context/AuthContext";
 
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function Login() {
@@ -23,22 +23,24 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
 
-  function handleLogin() {
-    const sucesso = login(telefone, senha);
+  async function handleLogin() {
+  setErro("");
 
-    if (sucesso) {
-      router.push("/(auth)/planilha");
-    } else {
-      setErro("Telefone ou senha incorretos.");
-    }
+  const sucesso = await login(telefone, senha);
+
+  if (sucesso) {
+    router.replace("/(auth)/planilha");
+  } else {
+    setErro("Telefone ou senha incorretos.");
   }
+}
 
   return (
     <SafeAreaView style={styles.safe}>
 
       {/* FUNDO */}
       <Image
-        source={require("../../../assets/images/background.jpg")}
+        source={require("../../assets/images/background.jpg")}
         style={styles.background}
         resizeMode="cover"
       />
@@ -59,7 +61,7 @@ export default function Login() {
           <View style={styles.form}>
 
             <Image
-              source={require("../../../assets/images/logo-login.png")}
+              source={require("../../assets/images/logo-login.png")}
               style={styles.logo}
               resizeMode="contain"
             />
