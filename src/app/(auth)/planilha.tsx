@@ -41,7 +41,6 @@ const TRAINING_ICONS: { key: string; label: string; icon: TrainingIconName }[] =
 ];
 
 const LEVELS: { key: LevelKey; label: string; icon: number }[] = [
-  { key: "sem_nivel", label: "Sem nível", icon: require("../../../assets/images/iniciante_icon.png") },
   { key: "iniciante", label: "Iniciante", icon: require("../../../assets/images/iniciante_icon.png") },
   { key: "intermediario", label: "Intermediário", icon: require("../../../assets/images/intermediario_icon.png") },
   { key: "avancado", label: "Avançado", icon: require("../../../assets/images/avancado_icon.png") },
@@ -184,11 +183,23 @@ export default function PlanilhaScreen() {
             <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-          <Link href="/(auth)/alunos" asChild>
-            <TouchableOpacity>
-              <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
-            </TouchableOpacity>
-          </Link>
+          {isProfessor ? (
+            <Link href="/(auth)/alunos" asChild>
+              <TouchableOpacity>
+                <Image
+                  source={require("../../../assets/images/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <Image
+              source={require("../../../assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          )}
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>

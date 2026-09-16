@@ -1,27 +1,29 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   FlatList,
   Image,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import type { Aluno, User } from "../../context/AuthContext";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { API_URL } from "../../config/api";
+import type { User } from "../../context/AuthContext";
 import { useAuth } from "../../context/AuthContext";
 
-const NIVEIS = ["Sem nível", "Iniciante", "Intermediário", "Avançado"];
+const NIVEIS = ["Iniciante", "Intermediário", "Avançado"];
 
 
 const EMPTY_FORM = { nome: "", nivel: "", telefone: "", senha: "", confirmSenha: "" };
 
 const nivelMap: Record<string, User["nivel"]> = {
-  "Sem nível": "sem_nivel",
   "Iniciante": "iniciante",
   "Intermediário": "intermediario",
   "Avançado": "avancado",
@@ -29,7 +31,8 @@ const nivelMap: Record<string, User["nivel"]> = {
 
 export default function AlunosScreen() {
   const router = useRouter();
-  const { user, alunos, cadastrarAluno, logout } = useAuth();
+  const { user, logout, usuarios, buscarUsuarios } = useAuth();
+  const alunos = usuarios.filter((usuario) => !usuario.isProfessor);
   const isProfessor = user?.isProfessor ?? false;
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -54,25 +57,61 @@ export default function AlunosScreen() {
     setNivelModalVisible(false);
   };
 
-  const salvar = () => {
+  const salvar = async () => {
     const novosErros: string[] = [];
+
     if (!form.nome.trim()) novosErros.push("Nome é obrigatório.");
     if (!form.nivel) novosErros.push("Selecione um nível.");
     if (!form.telefone.trim()) novosErros.push("Telefone é obrigatório.");
     if (!form.senha.trim()) novosErros.push("Crie uma senha.");
-    if (form.senha !== form.confirmSenha) novosErros.push("As senhas não coincidem.");
+    if (form.senha !== form.confirmSenha) {
+      novosErros.push("As senhas não coincidem.");
+    }
 
     if (novosErros.length > 0) {
       setErros(novosErros);
       return;
     }
 
-  cadastrarAluno(
-    { id: Date.now(), nome: form.nome.trim(), isProfessor: false, nivel: nivelMap[form.nivel] ?? "sem_nivel", notificacoes: 0, telefone: form.telefone.trim(), senha: form.senha },
-    { id: Date.now(), nome: form.nome.trim(), nivel: form.nivel as Aluno["nivel"], foto: null, telefone: form.telefone.trim() }
-  );
+    try {
+      const token = await SecureStore.getItemAsync("auth_token");
 
-    closeModal();
+      if (!token) {
+        setErros(["Sessão expirada. Faça login novamente."]);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nome: form.nome.trim(),
+          nivel: nivelMap[form.nivel] ?? "sem_nivel",
+          telefone: form.telefone.trim(),
+          senha: form.senha,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErros([
+          data.message ?? "Não foi possível cadastrar o aluno.",
+        ]);
+        return;
+      }
+      await buscarUsuarios();
+      closeModal();
+    } catch (error) {
+      console.error("[ALUNOS] Erro ao cadastrar:", error);
+
+      setErros([
+        "Não foi possível conectar ao servidor.",
+      ]);
+    }
   };
 
   const getInitials = (nome: string) => {
@@ -80,7 +119,7 @@ export default function AlunosScreen() {
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
-
+    
   return (
     <SafeAreaView style={styles.safe}>
         {/* Header */}
@@ -97,7 +136,14 @@ export default function AlunosScreen() {
       {/* Barra de ações */}
       <View style={styles.actionsRow}>
         {isProfessor ? (
-          <TouchableOpacity style={styles.addBtn} onPress={openModal}>
+          <TouchableOpacity style={styles.addBtn} 
+          onPress={() =>
+            {
+              console.log("[ALUNOS] Botão + pressionado");
+              console.log("[ALUNOS] user:", user); 
+              console.log("[ALUNOS] isProfessor:", isProfessor);
+              openModal();}
+          }>
             <Feather name="plus" size={20} color="#ED5514" />
           </TouchableOpacity>
         ) : (
@@ -106,24 +152,42 @@ export default function AlunosScreen() {
         <Text style={styles.totalText}>{alunos.length} Alunos</Text>
       </View>
 
+
       {/* Lista de alunos */}
       <FlatList
         data={alunos}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item) => String(item._id)}
         contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>
+            {usuarios.length === 0
+              ? "Carregando usuários..."
+              : "Nenhum aluno cadastrado."}
+          </Text>
+        }
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.alunoCard}>
             {item.foto ? (
-              <Image source={{ uri: item.foto }} style={styles.avatar} />
+              <Image
+                source={{ uri: item.foto }}
+                style={styles.avatar}
+              />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitials}>{getInitials(item.nome)}</Text>
+                <Text style={styles.avatarInitials}>
+                  {getInitials(item.nome)}
+                </Text>
               </View>
             )}
-            <Text style={styles.alunoNome}>{item.nome}</Text>
+
+            <Text style={styles.alunoNome}>
+              {item.nome}
+            </Text>
           </TouchableOpacity>
         )}
       />
+
+
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
@@ -145,15 +209,16 @@ export default function AlunosScreen() {
       </View>
 
       {/* Modal novo aluno */}
-      <Modal visible={modalVisible} animationType="slide" onRequestClose={closeModal}>
+      <Modal 
+      visible={modalVisible} 
+      animationType="slide" 
+      onRequestClose={closeModal}
+      presentationStyle="fullScreen"
+      onShow={() => console.log("[ALUNOS] Modal de adicionar aluno aberto")}
+      >
         <SafeAreaView style={styles.modalSafe}>
           <Text style={styles.modalTitle}>Adicionar novo aluno</Text>
-          <FlatList
-            data={[]}
-            keyExtractor={() => ""}
-            renderItem={null}
-            ListHeaderComponent={
-              <View style={styles.modalContent}>
+          <ScrollView contentContainerStyle={styles.modalContent}>
                 <Text style={styles.sectionLabel}>Dados do aluno</Text>
                 <TextInput
                   style={styles.input}
@@ -210,9 +275,7 @@ export default function AlunosScreen() {
                 <TouchableOpacity style={styles.cancelBtn} onPress={closeModal}>
                   <Text style={styles.cancelBtnText}>Cancelar</Text>
                 </TouchableOpacity>
-              </View>
-            }
-          />
+          </ScrollView>
         </SafeAreaView>
       </Modal>
 
@@ -234,6 +297,13 @@ export default function AlunosScreen() {
 }
 
 const styles = StyleSheet.create({
+  emptyText: {
+  fontFamily: "Inter_400Regular",
+  fontSize: 14,
+  color: "#777",
+  textAlign: "center",
+  marginTop: 30,
+},
   safe: { flex: 1, backgroundColor: "#f2f2f2" },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#fff", paddingHorizontal: 12, paddingVertical: 10 },
   backBtn: { width: 38, height: 38, borderRadius: 6, borderWidth: 1, borderColor: "#ddd", alignItems: "center", justifyContent: "center" },

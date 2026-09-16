@@ -3,19 +3,25 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { API_URL } from "../config/api";
 
 export interface User {
-  id: string;
+  _id: string;
   nome: string;
   isProfessor: boolean;
   nivel: "iniciante" | "intermediario" | "avancado";
   telefone: string;
+  foto?: string | null;
+  empresaId: string;
+  superiorId: string | null;
+
 }
 
 
 
 interface AuthContextData {
   user: User | null;
+  usuarios: User[];
   login: (telefone: string, senha: string) => Promise<boolean>;
   loading: boolean;
+  buscarUsuarios: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -24,7 +30,34 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [usuarios, setUsuarios] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const buscarUsuarios = async () => { 
+    try { const token = await SecureStore.getItemAsync("auth_token"); 
+      if (!token) { 
+        return; 
+      } 
+
+      const response = await fetch(`${API_URL}/users`, { 
+        method: "GET", 
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+        }, 
+      }); 
+      if (!response.ok) { 
+            console.error( "[AUTH] Erro ao buscar usuários:", response.status ); 
+
+            return; 
+          } 
+      const data = await response.json(); 
+        console.log("[AUTH] Usuários recebidos:", data); 
+        setUsuarios(data.users ?? data); 
+
+      } catch (error) { 
+          console.error("[AUTH] Erro ao buscar usuários:", error); 
+      } 
+    };
 
   useEffect(() => {
   async function restoreSession() {
@@ -50,6 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
 
       setUser(data.user);
+      await buscarUsuarios();
+
     } catch (error) {
       console.error("[AUTH] Erro ao restaurar sessão:", error);
     } finally {
@@ -88,13 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("[AUTH] Dados do usuário:", data);
       await SecureStore.setItemAsync("auth_token", data.token);
-
-      
-      const token = await SecureStore.getItemAsync("auth_token");
-      console.log("[AUTH] Token persistido:", Boolean(token));
       
       setUser(data.user);
-
+      await buscarUsuarios();
       return true;
     } catch (error) {
       console.error("Erro ao realizar login:", error);
@@ -105,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
   await SecureStore.deleteItemAsync("auth_token");
   setUser(null);
+  setUsuarios([]);
 };
 
 
@@ -112,6 +144,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        usuarios,
+        buscarUsuarios,
         login,
         logout,
         loading,

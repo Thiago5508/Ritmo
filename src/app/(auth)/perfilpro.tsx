@@ -1,109 +1,134 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
-import { useRouter, Link } from "expo-router";
-import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Link } from "expo-router";
+import React, { useState } from "react";
 import {
   Image,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
-const { user, alunos, cadastrarAluno } = useAuth();
-
 export default function PerfilProfessor() {
+  const { user, usuarios } = useAuth();
+
   const [logoAssessoria, setLogoAssessoria] = useState<string | null>(null);
-  const router = useRouter();
-  const { user, logout, alunos } = useAuth();
+
+  // Apenas alunos
+  const alunos = usuarios.filter((usuario) => !usuario.isProfessor);
+
   const STATS = {
-  total: alunos.length,
-  sem_nivel: alunos.filter((a) => a.nivel === "Sem nível").length,
-  iniciantes: alunos.filter((a) => a.nivel === "Iniciante").length,
-  intermediarios: alunos.filter((a) => a.nivel === "Intermediário").length,
-  avancados: alunos.filter((a) => a.nivel === "Avançado").length,
-};
-  const [nomeAssessoria, setNomeAssessoria] = useState("Pulsação Assessoria Esportiva");
-  const [editingNome, setEditingNome] = useState(false);
-  const [nomeDraft, setNomeDraft] = useState(nomeAssessoria);
+    total: alunos.length,
+    iniciantes: alunos.filter((a) => a.nivel === "iniciante").length,
+    intermediarios: alunos.filter((a) => a.nivel === "intermediario").length,
+    avancados: alunos.filter((a) => a.nivel === "avancado").length,
+  };
 
   const editarLogo = async () => {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ["images"],
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 1,
-  });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
 
-  if (!result.canceled) {
-    setLogoAssessoria(result.assets[0].uri);
-  }
-};
-
-  const saveNome = () => { setNomeAssessoria(nomeDraft); setEditingNome(false); };
-  const cancelNome = () => { setNomeDraft(nomeAssessoria); setEditingNome(false); };
+    if (!result.canceled) {
+      setLogoAssessoria(result.assets[0].uri);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
-
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Card principal */}
         <View style={styles.card}>
           <View style={styles.cardTop}>
+            {/* Logo da assessoria */}
             <View style={styles.logoBox}>
               <Image
-                  source={
-                    logoAssessoria
-                      ? { uri: logoAssessoria }
-                      : require("../../../assets/images/logo.png")
-                  }
-                  style={styles.logoLarge}
-                  resizeMode="contain"
-                />
+                source={
+                  logoAssessoria
+                    ? { uri: logoAssessoria }
+                    : require("../../../assets/images/logo.png")
+                }
+                style={styles.logoLarge}
+                resizeMode="contain"
+              />
 
-                <TouchableOpacity
-                  style={styles.editLogoBtn}
-                  onPress={editarLogo}
-                >
-                  <Feather name="edit-2" size={14} color="#fff" />
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editLogoBtn}
+                onPress={editarLogo}
+              >
+                <Feather
+                  name="edit-2"
+                  size={14}
+                  color="#fff"
+                />
+              </TouchableOpacity>
             </View>
+
+            {/* Estatísticas */}
             <View style={styles.statsBox}>
-              <Text style={styles.statsTotal}>{STATS.total} Alunos</Text>
-              {STATS.sem_nivel > 0 && (
-                <Text style={styles.statItem}>{STATS.sem_nivel} Sem nível</Text>
-              )}
-              <Text style={styles.statItem}>{STATS.iniciantes} Iniciantes</Text>
-              <Text style={styles.statItem}>{STATS.intermediarios} Intermediários</Text>
-              <Text style={styles.statItem}>{STATS.avancados} Avançados</Text>
+              <Text style={styles.statsTotal}>
+                {STATS.total} Alunos
+              </Text>
+
+              <Text style={styles.statItem}>
+                {STATS.iniciantes} Iniciantes
+              </Text>
+
+              <Text style={styles.statItem}>
+                {STATS.intermediarios} Intermediários
+              </Text>
+
+              <Text style={styles.statItem}>
+                {STATS.avancados} Avançados
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Informações da empresa */}
         <View style={styles.card}>
-          <View style={styles.nomeRow}>
-            {editingNome ? (
-              <TextInput style={styles.nomeInput} value={nomeDraft} onChangeText={setNomeDraft} autoFocus />
-            ) : (
-              <Text style={styles.nomeText}>{nomeAssessoria}</Text>
-            )}
-            {editingNome ? (
-              <View style={styles.editActions}>
-                <TouchableOpacity onPress={cancelNome}>
-                  <Feather name="x" size={18} color="#E63946" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={saveNome}>
-                  <Feather name="check" size={18} color="#2A9D62" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity onPress={() => setEditingNome(true)}>
-                <Feather name="edit-2" size={18} color="#ED5514" />
-              </TouchableOpacity>
-            )}
+          <Text style={styles.sectionTitle}>
+            Dados da assessoria
+          </Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>
+              Nome
+            </Text>
+
+            <Text style={styles.infoValue}>
+              Pulsação Assessoria Esportiva
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>
+              Professor
+            </Text>
+
+            <Text style={styles.infoValue}>
+              {user?.nome ?? "Não informado"}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>
+              Telefone
+            </Text>
+
+            <Text style={styles.infoValue}>
+              {user?.telefone ?? "Não informado"}
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -112,16 +137,32 @@ export default function PerfilProfessor() {
       <View style={styles.tabBar}>
         <Link href="/(auth)/mural" asChild>
           <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            <Image
+              source={require("../../../assets/images/sino_icon.png")}
+              style={styles.tabIcon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </Link>
+
         <Link href="/(auth)/planilha" asChild>
           <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            <Image
+              source={require("../../../assets/images/planilha_icon.png")}
+              style={styles.tabIcon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </Link>
-        <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
-          <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+
+        <TouchableOpacity
+          style={[styles.tabItem, styles.tabItemActive]}
+        >
+          <Image
+            source={require("../../../assets/images/perfil_icon.png")}
+            style={styles.tabIcon}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -129,41 +170,17 @@ export default function PerfilProfessor() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f2f2f2" },
-
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
+  safe: {
     flex: 1,
-    textAlign: "center",
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: "#333",
-    marginHorizontal: 8,
+    backgroundColor: "#f2f2f2",
   },
-  logo: { width: 44, height: 44, borderRadius: 6 },
 
-  // Scroll
-  scroll: { padding: 16, gap: 12 },
+  scroll: {
+    padding: 16,
+    gap: 12,
+    paddingBottom: 20,
+  },
 
-  // Card
   card: {
     backgroundColor: "#fff",
     borderRadius: 6,
@@ -171,18 +188,19 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     elevation: 3,
   },
 
-  // Card top (logo + stats)
   cardTop: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
   },
 
-  // Logo box
   logoBox: {
     position: "relative",
     width: 120,
@@ -193,7 +211,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoLarge: { width: 110, height: 110 },
+
+  logoLarge: {
+    width: 110,
+    height: 110,
+  },
+
   editLogoBtn: {
     position: "absolute",
     bottom: 6,
@@ -206,45 +229,55 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Stats
-  statsBox: { flex: 1, gap: 4 },
+  statsBox: {
+    flex: 1,
+    gap: 4,
+  },
+
   statsTotal: {
     fontFamily: "Inter_700Bold",
     fontSize: 18,
     color: "#ED5514",
     marginBottom: 6,
   },
+
   statItem: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: "#333",
   },
 
-  // Nome assessoria
-  nomeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  nomeText: {
-    flex: 1,
-    fontFamily: "Inter_400Regular",
-    fontSize: 15,
+  sectionTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
     color: "#333",
+    marginBottom: 16,
   },
-  nomeInput: {
-    flex: 1,
-    fontFamily: "Inter_400Regular",
-    fontSize: 15,
-    color: "#333",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ED5514",
-    paddingVertical: 2,
-  },
-  editActions: { flexDirection: "row", gap: 12 },
 
-  // Tab Bar
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  infoLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: "#777",
+  },
+
+  infoValue: {
+    flex: 1,
+    marginLeft: 16,
+    textAlign: "right",
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#333",
+  },
+
   tabBar: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -254,6 +287,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#eee",
   },
+
   tabItem: {
     width: 50,
     height: 50,
@@ -262,11 +296,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 5,
   },
-  tabItemActive: { borderWidth: 1, borderColor: "#ED5514" },
-  tabIcon: { width: 25 },
+
+  tabItemActive: {
+    borderWidth: 1,
+    borderColor: "#ED5514",
+  },
+
+  tabIcon: {
+    width: 25,
+  },
 });
