@@ -121,8 +121,7 @@ export default function AlunosScreen() {
   };
     
   return (
-    <SafeAreaView style={styles.safe}>
-        {/* Header */}
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.header}>
 
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
@@ -304,43 +303,248 @@ const styles = StyleSheet.create({
   textAlign: "center",
   marginTop: 30,
 },
-  safe: { flex: 1, backgroundColor: "#f2f2f2" },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#fff", paddingHorizontal: 12, paddingVertical: 10 },
-  backBtn: { width: 38, height: 38, borderRadius: 6, borderWidth: 1, borderColor: "#ddd", alignItems: "center", justifyContent: "center" },
-  headerTitle: { flex: 1, textAlign: "center", fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#333", marginHorizontal: 8 },
-  logo: { width: 44, height: 44, borderRadius: 6 },
-  actionsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12 },
-  addBtn: { width: 42, height: 42, borderRadius: 6, borderWidth: 1, borderColor: "#ED5514", alignItems: "center", justifyContent: "center", backgroundColor: "#fff" },
-  addBtnEmpty: { width: 42 },
-  totalText: { fontFamily: "Inter_700Bold", fontSize: 16, color: "#333" },
-  list: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
-  alunoCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 6, padding: 12, gap: 12, shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
-  avatar: { width: 46, height: 46, borderRadius: 23 },
-  avatarPlaceholder: { width: 46, height: 46, borderRadius: 23, backgroundColor: "#ED5514", alignItems: "center", justifyContent: "center" },
-  avatarInitials: { fontFamily: "Inter_700Bold", fontSize: 16, color: "#fff" },
-  alunoNome: { fontFamily: "Inter_400Regular", fontSize: 14, color: "#333", flex: 1 },
-  tabBar: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", paddingVertical: 12, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#eee" },
-  tabItem: { width: 50, height: 50, backgroundColor: "#fff", borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
-  tabIcon: { width: 25 },
-  modalSafe: { flex: 1, backgroundColor: "#fff" },
-  modalTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: "#1a1a1a", textAlign: "center", paddingTop: 24, paddingBottom: 8 },
-  modalContent: { padding: 20 },
-  sectionLabel: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#ED5514", marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: "#eee", borderRadius: 6, padding: 14, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333", backgroundColor: "#fff", marginBottom: 10 },
-  inputRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
-  infoIcon: { marginLeft: 8 },
-  nivelBtn: { backgroundColor: "#ED5514", borderRadius: 6, padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  nivelBtnText: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#fff" },
-  errosBox: { backgroundColor: "#fff3f3", borderRadius: 6, padding: 12, marginBottom: 10 },
-  erroText: { fontFamily: "Inter_400Regular", fontSize: 13, color: "#E63946", marginBottom: 2 },
-  saveBtn: { backgroundColor: "#ED5514", borderRadius: 6, padding: 16, alignItems: "center", marginTop: 8 },
-  saveBtnText: { fontFamily: "Inter_600SemiBold", color: "#fff", fontSize: 15 },
-  cancelBtn: { borderRadius: 6, padding: 16, alignItems: "center", borderWidth: 1, borderColor: "#eee", marginTop: 8 },
-  cancelBtnText: { fontFamily: "Inter_600SemiBold", color: "#333", fontSize: 15 },
-  nivelOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center" },
-  nivelCard: { width: "80%", backgroundColor: "#fff", borderRadius: 12, padding: 20 },
-  nivelCardTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: "#1a1a1a", marginBottom: 16, textAlign: "center" },
-  nivelOption: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  nivelOptionText: { fontFamily: "Inter_400Regular", fontSize: 15, color: "#333", textAlign: "center" },
-  nivelOptionActive: { color: "#ED5514", fontFamily: "Inter_600SemiBold" },
+  safe: { 
+    flex: 1, 
+    backgroundColor: "#f2f2f2" 
+  },
+  header: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    backgroundColor: "#fff", 
+    paddingHorizontal: 12, 
+    paddingVertical: 10 
+  },
+  backBtn: { 
+    width: 38, 
+    height: 38, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#ddd", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  headerTitle: { 
+    flex: 1, 
+    textAlign: "center", 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 14, 
+    color: "#333", 
+    marginHorizontal: 8 
+  },
+  logo: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 6 
+  },
+  actionsRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    paddingHorizontal: 16, 
+    paddingVertical: 12 
+  },
+  addBtn: { 
+    width: 42, 
+    height: 42, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#ED5514", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    backgroundColor: "#fff" 
+  },
+  addBtnEmpty: { 
+    width: 42 
+  },
+  totalText: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 16, 
+    color: "#333" 
+  },
+  list: { 
+    paddingHorizontal: 16, 
+    paddingBottom: 16, 
+    gap: 8 },
+  alunoCard: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    backgroundColor: "#fff", 
+    borderRadius: 6, 
+    padding: 12, 
+    gap: 12, 
+    shadowColor: "#000", 
+    shadowOpacity: 0.04, 
+    shadowRadius: 4, 
+  shadowOffset: { 
+    width: 0, 
+    height: 1
+  },elevation: 2 },
+  avatar: { 
+    width: 46, 
+    height: 46, 
+    borderRadius: 23 
+  },
+  avatarPlaceholder: { 
+    width: 46, 
+    height: 46, 
+    borderRadius: 23, 
+    backgroundColor: "#ED5514", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  avatarInitials: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 16, 
+    color: "#fff" 
+  },
+  alunoNome: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333", 
+    flex: 1 
+  },
+  tabBar: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  alignItems: "center",
+  paddingVertical: 12,
+  paddingBottom: 34, // <- adicione
+  backgroundColor: "#fff",
+  },
+  tabItem: { 
+    width: 50, 
+    height: 50, 
+    backgroundColor: "#fff", 
+    borderRadius: 8, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
+  tabIcon: { 
+    width: 25 
+  },
+  modalSafe: { 
+    flex: 1, 
+    backgroundColor: "#fff" 
+  },
+  modalTitle: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 18, 
+    color: "#1a1a1a", 
+    textAlign: "center", 
+    paddingTop: 24, 
+    paddingBottom: 8 
+  },
+  modalContent: { 
+    padding: 20 
+  },
+  sectionLabel: { 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 14, 
+    color: "#ED5514", 
+    marginBottom: 10 
+  },
+  input: { 
+    borderColor: "#eee", 
+    borderRadius: 6, 
+    padding: 14, 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333", 
+    backgroundColor: "#fff", 
+    marginBottom: 10 
+  },
+  inputRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    marginBottom: 10 
+  },
+  infoIcon: { 
+    marginLeft: 8 
+  },
+  nivelBtn: { 
+    backgroundColor: "#ED5514", 
+    borderRadius: 6, 
+    padding: 14, 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    marginBottom: 10 
+  },
+  nivelBtnText: { 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 14, 
+    color: "#fff" 
+  },
+  errosBox: { 
+    backgroundColor: "#fff3f3", 
+    borderRadius: 6, 
+    padding: 12, 
+    marginBottom: 10 
+  },
+  erroText: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 13, 
+    color: "#E63946", 
+    marginBottom: 2 
+  },
+  saveBtn: { 
+    backgroundColor: "#ED5514", 
+    borderRadius: 6, 
+    padding: 16, 
+    alignItems: "center", 
+    marginTop: 8 
+  },
+  saveBtnText: { 
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff", 
+    fontSize: 15 
+  },
+  cancelBtn: { 
+    borderRadius: 6, 
+    padding: 16, 
+    alignItems: "center", 
+    borderWidth: 1, 
+    borderColor: "#eee", 
+    marginTop: 8 
+  },
+  cancelBtnText: { 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#333", 
+    fontSize: 15 
+  },
+  nivelOverlay: { 
+    flex: 1, 
+    backgroundColor: "rgba(0,0,0,0.4)", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  nivelCard: { 
+    width: "80%", 
+    backgroundColor: "#fff", 
+    borderRadius: 12, 
+    padding: 20 
+  },
+  nivelCardTitle: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 16, 
+    color: "#1a1a1a", 
+    marginBottom: 16, 
+    textAlign: "center" 
+  },
+  nivelOption: { 
+    paddingVertical: 14, 
+    borderBottomWidth: 1, 
+    borderBottomColor: "#eee" 
+  },
+  nivelOptionText: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 15, 
+    color: "#333", 
+    textAlign: "center" 
+  },
+  nivelOptionActive: { 
+    color: "#ED5514", 
+    fontFamily: "Inter_600SemiBold" },
 });

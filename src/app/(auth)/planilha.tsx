@@ -169,7 +169,7 @@ export default function PlanilhaScreen() {
       resizeMode="cover"
     >
       <View style={styles.backgroundOverlay} />
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
 
         {/* Header */}
         <View style={styles.header}>
@@ -230,7 +230,7 @@ export default function PlanilhaScreen() {
           {/* Cronograma */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>CRONOGRAMA DE TREINOS</Text>
+              <Text style={styles.cardTitle}>CRONOGRAMA DE TREINO</Text>
               {isProfessor && (
                 isEditing ? (
                   <View style={styles.editActionsRow}>
@@ -437,7 +437,11 @@ export default function PlanilhaScreen() {
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, width: "100%", height: "100%" },
+  background: { 
+    flex: 1, 
+    width: "100%", 
+    height: "100%" 
+  },
   backgroundOverlay: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,0.2)" },
   safe: { flex: 1 },
 
@@ -457,74 +461,397 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 }, 
     elevation: 3,
   },
-  backBtn: { width: 38, height: 38, borderRadius: 6, borderWidth: 1, borderColor: "#ddd", alignItems: "center", justifyContent: "center" },
-  headerTitle: { flex: 1, textAlign: "center", fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#333", marginHorizontal: 8 },
-  logo: { width: 47, height: 47, borderRadius: 6 },
+  backBtn: { 
+    width: 38, 
+    height: 38, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#ddd", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  headerTitle: { 
+    flex: 1, 
+    textAlign: "center", 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 14, 
+    color: "#333", 
+    marginHorizontal: 8 
+  },
+  logo: { 
+    width: 47, 
+    height: 47, 
+    borderRadius: 6 
+  },
 
-  banner: { height: 90, marginHorizontal: 16, marginTop: 12, borderRadius: 6, overflow: "hidden" },
-  bannerImage: { width: "100%", height: "100%", borderRadius: 6 },
+  banner: { 
+    height: 90, 
+    marginHorizontal: 16, 
+    marginTop: 12, 
+    borderRadius: 6, 
+    overflow: "hidden" 
+  },
+  bannerImage: { 
+    width: "100%", 
+    height: "100%", 
+    borderRadius: 6 
+  },
   overlay: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(200,80,0,0.35)" },
-  bannerContent: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
-  bannerNome: { fontFamily: "Inter_700Bold", fontSize: 14, color: "#fff", marginBottom: 4 },
-  levelBadge: { alignSelf: "flex-start", borderWidth: 2, borderColor: "#fff", borderRadius: 6, paddingHorizontal: 20, paddingVertical: 2, backgroundColor: "#fff" },
-  levelText: { color: "#ED5514", fontFamily: "Inter_600SemiBold", fontSize: 12 },
+  bannerContent: { 
+    flex: 1, 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    paddingHorizontal: 16 
+  },
+  bannerNome: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 14, 
+    color: "#fff", 
+    marginBottom: 4 
+  },
+  levelBadge: { 
+    alignSelf: "flex-start", 
+    borderWidth: 2, 
+    borderColor: "#fff", 
+    borderRadius: 6, 
+    paddingHorizontal: 20, 
+    paddingVertical: 2, 
+    backgroundColor: "#fff" 
+  },
+  levelText: { 
+    color: "#ED5514", 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 12 
+  },
   bannerIcon: { height: 50 },
-
   scroll: { paddingBottom: 24 },
+  card: { 
+    backgroundColor: "#fff", 
+    borderRadius: 6, 
+    marginTop: 10, 
+    margin: 16, 
+    marginBottom: 0, 
+    padding: 16, 
+    shadowColor: "#000", 
+    shadowOpacity: 0.06, 
+    shadowRadius: 8, 
+    shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  cardHeader: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    marginBottom: 16 
+  },
+  cardTitle: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 14, 
+    color: "#1a1a1a", 
+    letterSpacing: 0.5 
+  },
+  editBtn: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#eee", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  editActionsRow: { 
+    flexDirection: "row", 
+    gap: 8 
+  },
+  iconActionBtn: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#eee", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  daysRow: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    marginBottom: 16 
+  },
+  dayBtn: { 
+    width: 42, 
+    height: 44, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#ED5514", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  dayBtnActive: { 
+    backgroundColor: "#ED5514", 
+    borderColor: "#ED5514" 
+  },
+  dayText: { 
+    fontSize: 11, 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#555" 
+  },
+  dayTextActive: { 
+    color: "#fff" 
+  },
 
-  card: { backgroundColor: "#fff", borderRadius: 6, marginTop: 10, margin: 16, marginBottom: 0, padding: 16, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  cardTitle: { fontFamily: "Inter_700Bold", fontSize: 14, color: "#1a1a1a", letterSpacing: 0.5 },
-  editBtn: { width: 40, height: 40, borderRadius: 6, borderWidth: 1, borderColor: "#eee", alignItems: "center", justifyContent: "center" },
-  editActionsRow: { flexDirection: "row", gap: 8 },
-  iconActionBtn: { width: 40, height: 40, borderRadius: 6, borderWidth: 1, borderColor: "#eee", alignItems: "center", justifyContent: "center" },
-
-  daysRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
-  dayBtn: { width: 42, height: 44, borderRadius: 6, borderWidth: 1, borderColor: "#ED5514", alignItems: "center", justifyContent: "center" },
-  dayBtnActive: { backgroundColor: "#ED5514", borderColor: "#ED5514" },
-  dayText: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#555" },
-  dayTextActive: { color: "#fff" },
-
-  workoutRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  workoutIconBox: { width: 74, height: 74, borderRadius: 6, borderWidth: 1.5, borderColor: "#ED5514", alignItems: "center", justifyContent: "center" },
+  workoutRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    gap: 12 
+  },
+  workoutIconBox: { 
+    width: 74, 
+    height: 74, 
+    borderRadius: 6, 
+    borderWidth: 1.5, 
+    borderColor: "#ED5514", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
   workoutInfo: { flex: 1 },
-  workoutDesc: { fontFamily: "Inter_400Regular", fontSize: 14, color: "#333" },
-  workoutInput: { fontFamily: "Inter_400Regular", fontSize: 14, color: "#333", borderBottomWidth: 1, borderBottomColor: "#eee", paddingVertical: 4, marginBottom: 6 },
+  workoutDesc: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333" 
+  },
+  workoutInput: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333", 
+    borderBottomWidth: 1, 
+    borderBottomColor: "#eee", 
+    paddingVertical: 4, 
+    marginBottom: 6 
+  },
 
-  eventRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#ED5514", borderRadius: 6, padding: 14, marginBottom: 8, gap: 10 },
-  eventName: { flex: 1, fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#fff" },
-  eventDateBox: { flexDirection: "row", alignItems: "center", gap: 4 },
-  eventDate: { fontFamily: "Inter_500Medium", fontSize: 13, color: "#fff" },
+  eventRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    backgroundColor: "#ED5514", 
+    borderRadius: 6, 
+    padding: 14, 
+    marginBottom: 8, 
+    gap: 10 
+  },
+  eventName: { 
+    flex: 1, 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 14, 
+    color: "#fff" 
+  },
+  eventDateBox: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    gap: 4 
+  },
+  eventDate: { 
+    fontFamily: "Inter_500Medium", 
+    fontSize: 13, 
+    color: "#fff" 
+  },
 
-  tabBar: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", paddingVertical: 12, backgroundColor: "#fff" },
-  tabItem: { width: 50, height: 50, backgroundColor: "#fff", borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
-  tabItemActive: { borderWidth: 1, borderColor: "#ED5514" },
+  tabBar: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  alignItems: "center",
+  paddingVertical: 12,
+  paddingBottom: 34,
+  backgroundColor: "#fff",
+},
+  tabItem: { 
+    width: 50, 
+    height: 50, 
+    backgroundColor: "#fff", 
+    borderRadius: 8, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 3 }, 
+    shadowOpacity: 0.15, 
+    shadowRadius: 6, 
+    elevation: 5 
+  },
+  tabItemActive: { 
+    borderWidth: 1, 
+    borderColor: "#ED5514" 
+  },
   tabIcon: { width: 25 },
-  badge: { position: "absolute", top: -4, right: -4, backgroundColor: "#E63946", borderRadius: 10, minWidth: 16, height: 16, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
-  badgeText: { fontFamily: "Inter_700Bold", fontSize: 10, color: "#fff" },
+  badge: { 
+    position: "absolute", 
+    top: -4, 
+    right: -4, 
+    backgroundColor: "#E63946", 
+    borderRadius: 10, 
+    minWidth: 16, 
+    height: 16, 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingHorizontal: 3 
+  },
+  badgeText: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 10, 
+    color: "#fff" 
+  },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center" },
-  modalCard: { width: "85%", backgroundColor: "#fff", borderRadius: 10, padding: 20 },
-  modalTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: "#1a1a1a", marginBottom: 16, textAlign: "center" },
-  modalIconsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
-  modalIconItem: { width: "30%", alignItems: "center", marginBottom: 16 },
-  modalIconCircle: { width: 56, height: 56, borderRadius: 28, borderWidth: 1.5, borderColor: "#ED5514", alignItems: "center", justifyContent: "center", marginBottom: 6 },
-  modalIconLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: "#333", textAlign: "center" },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: "rgba(0,0,0,0.4)", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  modalCard: { 
+    width: "85%", 
+    backgroundColor: "#fff", 
+    borderRadius: 10, 
+    padding: 20 
+  },
+  modalTitle: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 16, 
+    color: "#1a1a1a", 
+    marginBottom: 16, 
+    textAlign: "center" 
+  },
+  modalIconsGrid: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+    justifyContent: "space-between" 
+  },
+  modalIconItem: {
+    width: "30%", 
+    alignItems: "center", 
+    marginBottom: 16 
+  },
+  modalIconCircle: { 
+    width: 56, 
+    height: 56, 
+    borderRadius: 28, 
+    borderWidth: 1.5, 
+    borderColor: "#ED5514", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    marginBottom: 6 
+  },
+  modalIconLabel: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 11, 
+    color: "#333", 
+    textAlign: "center" 
+  },
 
-  eventModalCard: { width: "90%", backgroundColor: "#fff", borderRadius: 12, padding: 20, gap: 12 },
-  eventModalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
-  eventModalTitle: { fontFamily: "Inter_700Bold", fontSize: 15, color: "#1a1a1a", letterSpacing: 0.5 },
-  eventInputRow: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#eee", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
-  eventInput: { flex: 1, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333" },
-  eventRowInputs: { flexDirection: "row", gap: 10 },
-  eventInputBox: { flex: 1, borderWidth: 1, borderColor: "#eee", borderRadius: 8, paddingHorizontal: 5, paddingVertical: 10, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333", textAlign: "center" },
-  eventDateInput: { flex: 2, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#eee", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, gap: 6, overflow: "hidden" },
-  eventDateText: { flex: 1, flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333" },
-  eventDescInput: { borderWidth: 1, borderColor: "#eee", borderRadius: 8, padding: 12, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333", minHeight: 100 },
-  saveBtn: { backgroundColor: "#ED5514", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 4 },
-  saveBtnText: { fontFamily: "Inter_600SemiBold", color: "#fff", fontSize: 15 },
-  cancelBtn: { borderRadius: 8, padding: 14, alignItems: "center" },
-  cancelBtnText: { fontFamily: "Inter_600SemiBold", color: "#333", fontSize: 15 },
-  deleteBtn: { borderRadius: 8, padding: 14, alignItems: "center" },
-  deleteBtnText: { fontFamily: "Inter_600SemiBold", color: "#E63946", fontSize: 15 },
+  eventModalCard: { 
+    width: "90%", 
+    backgroundColor: "#fff", 
+    borderRadius: 12, 
+    padding: 20, 
+    gap: 12,
+  },
+  eventModalHeader: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    marginBottom: 4 
+  },
+  eventModalTitle: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 15, 
+    color: "#1a1a1a", 
+    letterSpacing: 0.5 
+  },
+  eventInputRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    borderWidth: 1, 
+    borderColor: "#eee", 
+    borderRadius: 8, 
+    paddingHorizontal: 12, 
+    paddingVertical: 8, 
+    gap: 8 
+  },
+  eventInput: { 
+    flex: 1, 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333" 
+  },
+  eventRowInputs: { 
+    flexDirection: "row", 
+    gap: 10 
+  },
+  eventInputBox: { 
+    flex: 1, 
+    borderWidth: 1,
+    borderColor: "#eee", 
+    borderRadius: 8, 
+    paddingHorizontal: 5, 
+    paddingVertical: 10, 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333", 
+    textAlign: "center" },
+  eventDateInput: { 
+    flex: 2, 
+    flexDirection: "row", 
+    alignItems: "center", 
+    borderWidth: 1, 
+    borderColor: "#eee", 
+    borderRadius: 8, 
+    paddingHorizontal: 12, 
+    paddingVertical: 10, 
+    gap: 6, 
+    overflow: "hidden" 
+  },
+  eventDateText: { 
+    flex: 1, 
+    flexShrink: 1, 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333" 
+  },
+  eventDescInput: { 
+    borderWidth: 1,
+    borderColor: "#eee", 
+    borderRadius: 8, 
+    padding: 12, 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333", 
+    minHeight: 100 },
+  saveBtn: { 
+    backgroundColor: "#ED5514", 
+    borderRadius: 8, 
+    padding: 14, 
+    alignItems: "center", 
+    marginTop: 4 
+  },
+  saveBtnText: { 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#fff", 
+    fontSize: 15 
+  },
+  cancelBtn: { 
+    borderRadius: 8,
+    padding: 14, 
+    alignItems: "center" 
+  },
+  cancelBtnText: { 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#333", 
+    fontSize: 15 
+  },
+  deleteBtn: { 
+    borderRadius: 8, 
+    padding: 14, 
+    alignItems: "center" 
+  },
+  deleteBtnText: { 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#E63946", 
+    fontSize: 15 
+  },
 });

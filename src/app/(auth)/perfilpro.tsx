@@ -42,7 +42,7 @@ export default function PerfilProfessor() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -278,15 +278,14 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 
-  tabBar: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 12,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
+tabBar: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  alignItems: "center",
+  paddingVertical: 12,
+  paddingBottom: 34, // <- adicione
+  backgroundColor: "#fff",
+ },
 
   tabItem: {
     width: 50,

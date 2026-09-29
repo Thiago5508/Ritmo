@@ -64,7 +64,7 @@ export default function PerfilAluno() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
@@ -263,7 +263,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f2f2f2",
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -468,9 +467,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 12,
+    paddingBottom: 34, // <- adicione
     backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
   },
 
   tabItem: {

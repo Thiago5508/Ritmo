@@ -1,8 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   FlatList,
   Image,
@@ -15,6 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 
 interface Message {
   id: number;
@@ -66,8 +66,7 @@ export default function MuralScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Header preto — mantém estilo original do mural */}
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
         <View style={styles.headerLeft} />
         <Text style={styles.headerTitle}>Mural de avisos</Text>
@@ -151,37 +150,179 @@ export default function MuralScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#fff" },
-  flex: { flex: 1 },
+  safe: { 
+    flex: 1, 
+    backgroundColor: "#fff" 
+  },
+  flex: { 
+    flex: 1 
+  },
+  header: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    backgroundColor: "#1a1a1a", 
+    paddingHorizontal: 12, 
+    paddingVertical: 5 
+  },
+  headerLeft: { 
+    width: 44 
+  },
+  headerTitle: { 
+    fontFamily: "Inter_600SemiBold", 
+    fontSize: 16, 
+    color: "#fff" 
+  },
+  logo: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 22 
+  },
 
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#1a1a1a", paddingHorizontal: 12, paddingVertical: 5 },
-  headerLeft: { width: 44 },
-  headerTitle: { fontFamily: "Inter_600SemiBold", fontSize: 16, color: "#fff" },
-  logo: { width: 44, height: 44, borderRadius: 22 },
+  list: { 
+    padding: 16, 
+    paddingBottom: 8 
+  },
+  dateLabel: { 
+    textAlign: "center", 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 12, 
+    color: "#aaa", 
+    marginVertical: 8 },
 
-  list: { padding: 16, paddingBottom: 8 },
-  dateLabel: { textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: "#aaa", marginVertical: 8 },
-
-  bubble: { backgroundColor: "#ED5514", borderRadius: 10, padding: 12, marginBottom: 10, position: "relative" },
-  bubbleText: { fontFamily: "Inter_400Regular", fontSize: 14, color: "#fff", marginRight: 24 },
-  bubbleTime: { fontFamily: "Inter_400Regular", fontSize: 11, color: "rgba(255,255,255,0.7)", textAlign: "right", marginTop: 4 },
-  deleteBtn: { position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.2)", alignItems: "center", justifyContent: "center" },
-
-  inputRow: { flexDirection: "row", alignItems: "center", padding: 10, borderTopWidth: 1, borderTopColor: "#eee", gap: 10 },
-  input: { flex: 1, borderWidth: 1, borderColor: "#ed5514", borderRadius: 6, paddingHorizontal: 16, paddingTop: 16, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333", maxHeight: 100 },
-  sendBtn: { width: 44, height: 44, borderRadius: 6, backgroundColor: "#ED5514", alignItems: "center", justifyContent: "center" },
-
-  tabBar: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", paddingVertical: 12, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#eee" },
-  tabItem: { width: 50, height: 50, backgroundColor: "#fff", borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
-  tabItemActive: { borderWidth: 1, borderColor: "#ED5514" },
-  tabIcon: { width: 25 },
-
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center" },
-  modalCard: { width: "80%", backgroundColor: "#fff", borderRadius: 12, padding: 24, alignItems: "center" },
-  modalTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: "#1a1a1a", marginBottom: 8 },
-  modalDesc: { fontFamily: "Inter_400Regular", fontSize: 14, color: "#555", textAlign: "center", marginBottom: 20 },
-  modalConfirmBtn: { width: "100%", backgroundColor: "#E63946", borderRadius: 8, padding: 14, alignItems: "center", marginBottom: 8 },
-  modalConfirmText: { fontFamily: "Inter_600SemiBold", color: "#fff", fontSize: 15 },
-  modalCancelBtn: { width: "100%", padding: 14, alignItems: "center" },
-  modalCancelText: { fontFamily: "Inter_600SemiBold", color: "#333", fontSize: 15 },
+  bubble: { 
+    backgroundColor: "#ED5514", 
+    borderRadius: 10, 
+    padding: 12, 
+    marginBottom: 10,
+    position: "relative" 
+  },
+  bubbleText: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14,
+    color: "#fff", 
+    marginRight: 24 
+  },
+  bubbleTime: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 11, 
+    color: "rgba(255,255,255,0.7)", 
+    textAlign: "right", 
+    marginTop: 4 
+  },
+  deleteBtn: { 
+    position: "absolute", 
+    top: 8, 
+    right: 8, 
+    width: 20, 
+    height: 20, 
+    borderRadius: 10, 
+    backgroundColor: "rgba(0,0,0,0.2)", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  inputRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    padding: 10, 
+    borderTopWidth: 1, 
+    borderTopColor: "#eee", 
+    gap: 10 
+  },
+  input: { 
+    flex: 1, 
+    borderWidth: 1, 
+    borderColor: "#ed5514", 
+    borderRadius: 6, 
+    paddingHorizontal: 16, 
+    paddingTop: 16, 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#333", 
+    maxHeight: 100 
+  },
+  sendBtn: { 
+    width: 44, 
+    height: 44,
+    borderRadius: 6, 
+    backgroundColor: "#ED5514", 
+    alignItems: "center", justifyContent: "center" 
+  },
+  tabBar: {
+   flexDirection: "row",
+   justifyContent: "space-around",
+   alignItems: "center",
+   paddingVertical: 12,
+   paddingBottom: 34,
+   backgroundColor: "#fff",
+  },
+  tabItem: { 
+    width: 50, 
+    height: 50, 
+    backgroundColor: "#fff", 
+    borderRadius: 8, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 3 }, 
+    shadowOpacity: 0.15, 
+    shadowRadius: 6, 
+    elevation: 5 
+  },
+  tabItemActive: { 
+    borderWidth: 1, 
+    borderColor: "#ED5514" 
+  },
+  tabIcon: { 
+    width: 25 
+  },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: "rgba(0,0,0,0.4)", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  modalCard: { 
+    width: "80%", 
+    backgroundColor: "#fff", 
+    borderRadius: 12,
+    padding: 24, 
+    alignItems: "center" 
+  },
+  modalTitle: { 
+    fontFamily: "Inter_700Bold", 
+    fontSize: 16, 
+    color: "#1a1a1a", 
+    marginBottom: 8 
+  },
+  modalDesc: { 
+    fontFamily: "Inter_400Regular", 
+    fontSize: 14, 
+    color: "#555", 
+    textAlign: "center", 
+    marginBottom: 20 
+  },
+  modalConfirmBtn: { 
+    width: "100%", 
+    backgroundColor: "#E63946", 
+    borderRadius: 8, 
+    padding: 14, 
+    alignItems: "center", 
+    marginBottom: 8 
+  },
+  modalConfirmText: { 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#fff", 
+    fontSize: 15 
+  },
+  modalCancelBtn: { 
+    width: "100%", 
+    padding: 14, 
+    alignItems: "center" 
+  },
+  modalCancelText: { 
+    fontFamily: "Inter_600SemiBold", 
+    color: "#333", 
+    fontSize: 15 
+  },
 });
