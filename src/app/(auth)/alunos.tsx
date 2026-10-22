@@ -123,13 +123,33 @@ export default function AlunosScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.header}>
-
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              logout();
+              router.replace("/planilha");
+            }}
+          >
+            <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-          <Link href="/(auth)/alunos" asChild>
-            <TouchableOpacity>
-              <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
-            </TouchableOpacity>
-          </Link>
+          {isProfessor ? (
+            <Link href="/(auth)/alunos" asChild>
+              <TouchableOpacity>
+                <Image
+                  source={require("../../../assets/images/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <Image
+              source={require("../../../assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          )}
         </View>
 
       {/* Barra de ações */}
@@ -307,13 +327,21 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: "#f2f2f2" 
   },
-  header: { 
+  header: {
     flexDirection: "row", 
     alignItems: "center", 
-    justifyContent: "space-between", 
+    justifyContent: "space-between",
     backgroundColor: "#fff", 
-    paddingHorizontal: 12, 
-    paddingVertical: 10 
+    paddingHorizontal: 8, 
+    paddingVertical: 5,
+    marginHorizontal: 16, 
+    marginTop: 20, 
+    borderRadius: 6,
+    shadowColor: "#000", 
+    shadowOpacity: 0.06, 
+    shadowRadius: 8, 
+    shadowOffset: { width: 0, height: 2 }, 
+    elevation: 3,
   },
   backBtn: { 
     width: 38, 
@@ -335,7 +363,9 @@ const styles = StyleSheet.create({
   logo: { 
     width: 44, 
     height: 44, 
-    borderRadius: 6 
+    borderRadius: 50,
+    borderWidth: 1.5,  
+    borderColor: "#ED5514",
   },
   actionsRow: { 
     flexDirection: "row", 
@@ -345,14 +375,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12 
   },
   addBtn: { 
-    width: 42, 
-    height: 42, 
+    width: 50, 
+    height: 50, 
     borderRadius: 6, 
     borderWidth: 1, 
     borderColor: "#ED5514", 
     alignItems: "center", 
     justifyContent: "center", 
-    backgroundColor: "#fff" 
+    backgroundColor: "#fff",
+    marginVertical: 14,
   },
   addBtnEmpty: { 
     width: 42 
@@ -360,7 +391,9 @@ const styles = StyleSheet.create({
   totalText: { 
     fontFamily: "Inter_700Bold", 
     fontSize: 16, 
-    color: "#333" 
+    color: "#333",
+    position: "absolute",
+    left: 80,
   },
   list: { 
     paddingHorizontal: 16, 
@@ -371,7 +404,8 @@ const styles = StyleSheet.create({
     alignItems: "center", 
     backgroundColor: "#fff", 
     borderRadius: 6, 
-    padding: 12, 
+    padding: 5,
+    paddingLeft: 18, 
     gap: 12, 
     shadowColor: "#000", 
     shadowOpacity: 0.04, 
@@ -381,13 +415,13 @@ const styles = StyleSheet.create({
     height: 1
   },elevation: 2 },
   avatar: { 
-    width: 46, 
-    height: 46, 
+    width: 40, 
+    height: 40, 
     borderRadius: 23 
   },
   avatarPlaceholder: { 
-    width: 46, 
-    height: 46, 
+    width: 40, 
+    height: 40, 
     borderRadius: 23, 
     backgroundColor: "#ED5514", 
     alignItems: "center", 
