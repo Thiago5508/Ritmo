@@ -127,7 +127,7 @@ export default function AlunosScreen() {
             style={styles.backBtn}
             onPress={() => {
               logout();
-              router.replace("/planilha");
+              router.replace("/home");
             }}
           >
             <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
@@ -210,14 +210,14 @@ export default function AlunosScreen() {
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
+        <Link href="/(auth)/home" asChild>
+          <TouchableOpacity style={styles.tabItem}>
+            <Image source={require("../../../assets/images/home_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+          </TouchableOpacity>
+        </Link>
         <Link href="/(auth)/mural" asChild>
           <TouchableOpacity style={styles.tabItem}>
             <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
-        </Link>
-        <Link href="/(auth)/planilha" asChild>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
           </TouchableOpacity>
         </Link>
         <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>

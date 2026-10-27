@@ -224,6 +224,15 @@ export default function PerfilAluno() {
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
+        <Link href="/(auth)/home" asChild>
+          <TouchableOpacity style={styles.tabItem}>
+            <Image
+              source={require("../../../assets/images/home_icon.png")}
+              style={styles.tabIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </Link>
         <Link href="/(auth)/mural" asChild>
           <TouchableOpacity style={styles.tabItem}>
             <Image
@@ -233,17 +242,6 @@ export default function PerfilAluno() {
             />
           </TouchableOpacity>
         </Link>
-
-        <Link href="/(auth)/planilha" asChild>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image
-              source={require("../../../assets/images/planilha_icon.png")}
-              style={styles.tabIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </Link>
-
         <TouchableOpacity
           style={[styles.tabItem, styles.tabItemActive]}
         >

@@ -29,7 +29,7 @@ export default function Login() {
   const sucesso = await login(telefone, senha);
 
   if (sucesso) {
-    router.replace("/(auth)/planilha");
+    router.replace("/(auth)/home");
   } else {
     setErro("Telefone ou senha incorretos.");
   }

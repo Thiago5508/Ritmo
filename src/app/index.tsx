@@ -10,7 +10,7 @@ export default function Index() {
   }
 
   return user ? (
-    <Redirect href="/(auth)/planilha" />
+    <Redirect href="/(auth)/home" />
   ) : (
     <Redirect href="/login" />
   );

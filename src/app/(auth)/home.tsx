@@ -83,7 +83,7 @@ function formatDate(text: string) {
   return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4)}`;
 }
 
-export default function PlanilhaScreen() {
+export default function HomeScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const isProfessor = user?.isProfessor ?? false;
@@ -321,6 +321,9 @@ export default function PlanilhaScreen() {
 
         {/* Tab Bar */}
         <View style={styles.tabBar}>
+          <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
+            <Image source={require("../../../assets/images/home_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+          </TouchableOpacity>
           <Link href="/(auth)/mural" asChild>
             <TouchableOpacity style={styles.tabItem}>
               <View>
@@ -331,9 +334,6 @@ export default function PlanilhaScreen() {
               </View>
             </TouchableOpacity>
           </Link>
-          <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
-            <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
             <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
               <TouchableOpacity style={styles.tabItem}>
                 <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />

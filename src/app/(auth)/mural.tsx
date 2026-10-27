@@ -115,14 +115,14 @@ export default function MuralScreen() {
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
+        <Link href="/(auth)/home" asChild>
+          <TouchableOpacity style={styles.tabItem}>
+            <Image source={require("../../../assets/images/home_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+          </TouchableOpacity>
+        </Link>
         <TouchableOpacity style={[styles.tabItem, styles.tabItemActive]}>
           <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
         </TouchableOpacity>
-        <Link href="/(auth)/planilha" asChild>
-          <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/planilha_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-          </TouchableOpacity>
-        </Link>
           <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
             <TouchableOpacity style={styles.tabItem}>
               <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
