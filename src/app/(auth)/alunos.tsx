@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -20,13 +20,12 @@ import { useAuth } from "../../context/AuthContext";
 
 const NIVEIS = ["Iniciante", "Intermediário", "Avançado"];
 
-
 const EMPTY_FORM = { nome: "", nivel: "", telefone: "", senha: "", confirmSenha: "" };
 
 const nivelMap: Record<string, User["nivel"]> = {
-  "Iniciante": "iniciante",
-  "Intermediário": "intermediario",
-  "Avançado": "avancado",
+  Iniciante: "iniciante",
+  Intermediário: "intermediario",
+  Avançado: "avancado",
 };
 
 export default function AlunosScreen() {
@@ -39,6 +38,15 @@ export default function AlunosScreen() {
   const [nivelModalVisible, setNivelModalVisible] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [erros, setErros] = useState<string[]>([]);
+
+  // Busca a lista sempre que a tela abre
+  useEffect(() => {
+    buscarUsuarios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Logs de diagnóstico (remova depois que a lista funcionar)
+  console.log("[ALUNOS] usuarios:", usuarios.length, "alunos:", alunos.length);
 
   const openModal = () => {
     setForm(EMPTY_FORM);
@@ -98,65 +106,64 @@ export default function AlunosScreen() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErros([
-          data.message ?? "Não foi possível cadastrar o aluno.",
-        ]);
+        setErros([data.message ?? "Não foi possível cadastrar o aluno."]);
         return;
       }
+
       await buscarUsuarios();
       closeModal();
     } catch (error) {
       console.error("[ALUNOS] Erro ao cadastrar:", error);
-
-      setErros([
-        "Não foi possível conectar ao servidor.",
-      ]);
+      setErros(["Não foi possível conectar ao servidor."]);
     }
   };
 
-  const getInitials = (nome: string) => {
-    const parts = nome.trim().split(" ");
+  const getInitials = (nome?: string) => {
+    const parts = (nome ?? "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
-    
+
+  const abrirPerfil = (item: User) => {
+    const id = String(item._id);
+
+    // Aluno clicando no próprio card vai para o próprio perfil
+    if (!isProfessor && String(user?._id) === id) {
+      router.push("/(auth)/perfil-aluno");
+      return;
+    }
+
+    router.push({
+      pathname: "/(auth)/perfil-aluno-visita",
+      params: { id },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => {
-              logout();
-              router.replace("/home");
-            }}
-          >
-            <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Feather name="arrow-left" size={20} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
+
+        <Link href="/(auth)/alunos" asChild>
+          <TouchableOpacity>
+            <Image
+              source={require("../../../assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-
-            <Link href="/(auth)/alunos" asChild>
-              <TouchableOpacity>
-                <Image
-                  source={require("../../../assets/images/logo.png")}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </Link>
-
-        </View>
+        </Link>
+      </View>
 
       {/* Barra de ações */}
       <View style={styles.actionsRow}>
         {isProfessor ? (
-          <TouchableOpacity style={styles.addBtn} 
-          onPress={() =>
-            {
-              console.log("[ALUNOS] Botão + pressionado");
-              console.log("[ALUNOS] user:", user); 
-              console.log("[ALUNOS] isProfessor:", isProfessor);
-              openModal();}
-          }>
+          <TouchableOpacity style={styles.addBtn} onPress={openModal}>
             <Feather name="plus" size={20} color="#ED5514" />
           </TouchableOpacity>
         ) : (
@@ -165,11 +172,11 @@ export default function AlunosScreen() {
         <Text style={styles.totalText}>{alunos.length} Alunos</Text>
       </View>
 
-
       {/* Lista de alunos */}
       <FlatList
+        style={styles.flatList}
         data={alunos}
-        keyExtractor={(item) => String(item._id)}
+        keyExtractor={(item, index) => String(item._id ?? index)}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <Text style={styles.emptyText}>
@@ -179,127 +186,167 @@ export default function AlunosScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.alunoCard}>
+          <TouchableOpacity
+            style={styles.alunoCard}
+            onPress={() => abrirPerfil(item)}
+          >
             {item.foto ? (
-              <Image
-                source={{ uri: item.foto }}
-                style={styles.avatar}
-              />
+              <Image source={{ uri: item.foto }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitials}>
-                  {getInitials(item.nome)}
-                </Text>
+                <Text style={styles.avatarInitials}>{getInitials(item.nome)}</Text>
               </View>
             )}
 
-            <Text style={styles.alunoNome}>
-              {item.nome}
-            </Text>
+            <Text style={styles.alunoNome}>{item.nome}</Text>
           </TouchableOpacity>
         )}
       />
-
-
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
         <Link href="/(auth)/home" asChild>
           <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/home_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            <Image
+              source={require("../../../assets/images/home_icon.png")}
+              style={styles.tabIcon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </Link>
         <Link href="/(auth)/mural" asChild>
           <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            <Image
+              source={require("../../../assets/images/sino_icon.png")}
+              style={styles.tabIcon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </Link>
         <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
           <TouchableOpacity style={styles.tabItem}>
-            <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            <Image
+              source={require("../../../assets/images/perfil_icon.png")}
+              style={styles.tabIcon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </Link>
       </View>
 
       {/* Modal novo aluno */}
-      <Modal 
-      visible={modalVisible} 
-      animationType="slide" 
-      onRequestClose={closeModal}
-      presentationStyle="fullScreen"
-      onShow={() => console.log("[ALUNOS] Modal de adicionar aluno aberto")}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={closeModal}
+        presentationStyle="fullScreen"
       >
         <SafeAreaView style={styles.modalSafe}>
           <Text style={styles.modalTitle}>Adicionar novo aluno</Text>
-          <ScrollView contentContainerStyle={styles.modalContent}>
-                <Text style={styles.sectionLabel}>Dados do aluno</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Digite o nome do aluno..."
-                  placeholderTextColor="#bbb"
-                  value={form.nome}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, nome: text }))}
-                />
-                <TouchableOpacity style={styles.nivelBtn} onPress={() => setNivelModalVisible(true)}>
-                  <Text style={styles.nivelBtnText}>{form.nivel || "Selecione o nível"}</Text>
-                  <Feather name="chevron-down" size={20} color="#fff" />
-                </TouchableOpacity>
+          <ScrollView
+            contentContainerStyle={styles.modalContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={styles.sectionLabel}>Dados do aluno</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite o nome do aluno..."
+              placeholderTextColor="#bbb"
+              value={form.nome}
+              onChangeText={(text) => setForm((prev) => ({ ...prev, nome: text }))}
+            />
+            <TouchableOpacity
+              style={styles.nivelBtn}
+              onPress={() => setNivelModalVisible(true)}
+            >
+              <Text style={styles.nivelBtnText}>{form.nivel || "Selecione o nível"}</Text>
+              <Feather name="chevron-down" size={20} color="#fff" />
+            </TouchableOpacity>
 
-                <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Dados de acesso</Text>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    style={[styles.input, { flex: 1 }]}
-                    placeholder="Telefone do aluno (apenas números)"
-                    placeholderTextColor="#bbb"
-                    value={form.telefone}
-                    onChangeText={(text) => setForm((prev) => ({ ...prev, telefone: text.replace(/\D/g, "") }))}
-                    keyboardType="numeric"
-                  />
-                  <Ionicons name="alert-circle-outline" size={20} color="#ED5514" style={styles.infoIcon} />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Crie uma senha"
-                  placeholderTextColor="#bbb"
-                  value={form.senha}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, senha: text }))}
-                  secureTextEntry
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Repita a senha"
-                  placeholderTextColor="#bbb"
-                  value={form.confirmSenha}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, confirmSenha: text }))}
-                  secureTextEntry
-                />
+            <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Dados de acesso</Text>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="Telefone do aluno (apenas números)"
+                placeholderTextColor="#bbb"
+                value={form.telefone}
+                onChangeText={(text) =>
+                  setForm((prev) => ({ ...prev, telefone: text.replace(/\D/g, "") }))
+                }
+                keyboardType="numeric"
+              />
+              <Ionicons
+                name="alert-circle-outline"
+                size={20}
+                color="#ED5514"
+                style={styles.infoIcon}
+              />
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Crie uma senha"
+              placeholderTextColor="#bbb"
+              value={form.senha}
+              onChangeText={(text) => setForm((prev) => ({ ...prev, senha: text }))}
+              secureTextEntry
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Repita a senha"
+              placeholderTextColor="#bbb"
+              value={form.confirmSenha}
+              onChangeText={(text) => setForm((prev) => ({ ...prev, confirmSenha: text }))}
+              secureTextEntry
+            />
 
-                {erros.length > 0 && (
-                  <View style={styles.errosBox}>
-                    {erros.map((e, i) => (
-                      <Text key={i} style={styles.erroText}>• {e}</Text>
-                    ))}
-                  </View>
-                )}
+            {erros.length > 0 && (
+              <View style={styles.errosBox}>
+                {erros.map((e, i) => (
+                  <Text key={i} style={styles.erroText}>
+                    • {e}
+                  </Text>
+                ))}
+              </View>
+            )}
 
-                <TouchableOpacity style={styles.saveBtn} onPress={salvar}>
-                  <Text style={styles.saveBtnText}>Salvar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelBtn} onPress={closeModal}>
-                  <Text style={styles.cancelBtnText}>Cancelar</Text>
-                </TouchableOpacity>
+            <TouchableOpacity style={styles.saveBtn} onPress={salvar}>
+              <Text style={styles.saveBtnText}>Salvar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelBtn} onPress={closeModal}>
+              <Text style={styles.cancelBtnText}>Cancelar</Text>
+            </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
       </Modal>
 
       {/* Modal seleção de nível */}
-      <Modal visible={nivelModalVisible} transparent animationType="fade" onRequestClose={() => setNivelModalVisible(false)}>
-        <TouchableOpacity style={styles.nivelOverlay} activeOpacity={1} onPress={() => setNivelModalVisible(false)}>
+      <Modal
+        visible={nivelModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNivelModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.nivelOverlay}
+          activeOpacity={1}
+          onPress={() => setNivelModalVisible(false)}
+        >
           <View style={styles.nivelCard}>
             <Text style={styles.nivelCardTitle}>Selecione o nível</Text>
             {NIVEIS.map((n) => (
-              <TouchableOpacity key={n} style={styles.nivelOption} onPress={() => selectNivel(n)}>
-                <Text style={[styles.nivelOptionText, form.nivel === n && styles.nivelOptionActive]}>{n}</Text>
+              <TouchableOpacity
+                key={n}
+                style={styles.nivelOption}
+                onPress={() => selectNivel(n)}
+              >
+                <Text
+                  style={[
+                    styles.nivelOptionText,
+                    form.nivel === n && styles.nivelOptionActive,
+                  ]}
+                >
+                  {n}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -311,268 +358,279 @@ export default function AlunosScreen() {
 
 const styles = StyleSheet.create({
   emptyText: {
-  fontFamily: "Inter_400Regular",
-  fontSize: 14,
-  color: "#777",
-  textAlign: "center",
-  marginTop: 30,
-},
-  safe: { 
-    flex: 1, 
-    backgroundColor: "#f2f2f2" 
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#777",
+    textAlign: "center",
+    marginTop: 30,
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: "#f2f2f2",
   },
   header: {
-    flexDirection: "row", 
-    alignItems: "center", 
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#fff", 
-    paddingHorizontal: 8, 
+    backgroundColor: "#fff",
+    paddingHorizontal: 8,
     paddingVertical: 5,
-    marginHorizontal: 16, 
-    marginTop: 20, 
+    marginHorizontal: 16,
+    marginTop: 20,
     borderRadius: 6,
-    shadowColor: "#000", 
-    shadowOpacity: 0.06, 
-    shadowRadius: 8, 
-    shadowOffset: { width: 0, height: 2 }, 
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  backBtn: { 
-    width: 38, 
-    height: 38, 
-    borderRadius: 6, 
-    borderWidth: 1, 
-    borderColor: "#ddd", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  headerTitle: { 
-    flex: 1, 
-    textAlign: "center", 
-    fontFamily: "Inter_600SemiBold", 
-    fontSize: 14, 
-    color: "#333", 
-    marginHorizontal: 8 
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: "#333",
+    marginHorizontal: 8,
   },
-  logo: { 
-    width: 44, 
-    height: 44, 
+  logo: {
+    width: 44,
+    height: 44,
     borderRadius: 50,
-    borderWidth: 1.5,  
+    borderWidth: 1.5,
     borderColor: "#ED5514",
   },
-  actionsRow: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "space-between", 
-    paddingHorizontal: 16, 
-    paddingVertical: 12 
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  addBtn: { 
-    width: 50, 
-    height: 50, 
-    borderRadius: 6, 
-    borderWidth: 1, 
-    borderColor: "#ED5514", 
-    alignItems: "center", 
-    justifyContent: "center", 
+  addBtn: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ED5514",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#fff",
     marginVertical: 14,
   },
-  addBtnEmpty: { 
-    width: 42 
+  addBtnEmpty: {
+    width: 42,
+    height: 50,
+    marginVertical: 14,
   },
-  totalText: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 16, 
+  totalText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
     color: "#333",
     position: "absolute",
     left: 80,
   },
-  list: { 
-    paddingHorizontal: 16, 
-    paddingBottom: 16, 
-    gap: 8 },
-  alunoCard: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    backgroundColor: "#fff", 
-    borderRadius: 6, 
+  flatList: {
+    flex: 1,
+  },
+  list: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  alunoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 6,
     padding: 5,
-    paddingLeft: 18, 
-    gap: 12, 
-    shadowColor: "#000", 
-    shadowOpacity: 0.04, 
-    shadowRadius: 4, 
-  shadowOffset: { 
-    width: 0, 
-    height: 1
-  },elevation: 2 },
-  avatar: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 23 
+    paddingLeft: 18,
+    gap: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
-  avatarPlaceholder: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 23, 
-    backgroundColor: "#ED5514", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
-  avatarInitials: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 16, 
-    color: "#fff" 
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#ED5514",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  alunoNome: { 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333", 
-    flex: 1 
+  avatarInitials: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    color: "#fff",
+  },
+  alunoNome: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#333",
+    flex: 1,
   },
   tabBar: {
-  flexDirection: "row",
-  justifyContent: "space-around",
-  alignItems: "center",
-  paddingVertical: 12,
-  paddingBottom: 34, // <- adicione
-  backgroundColor: "#fff",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingBottom: 34,
+    backgroundColor: "#fff",
   },
-  tabItem: { 
-    width: 50, 
-    height: 50, 
-    backgroundColor: "#fff", 
-    borderRadius: 8, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    shadowColor: "#000", 
-    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
-  tabIcon: { 
-    width: 25 
+  tabItem: {
+    width: 50,
+    height: 50,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  modalSafe: { 
-    flex: 1, 
-    backgroundColor: "#fff" 
+  tabIcon: {
+    width: 25,
   },
-  modalTitle: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 18, 
-    color: "#1a1a1a", 
-    textAlign: "center", 
-    paddingTop: 24, 
-    paddingBottom: 8 
+  modalSafe: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
-  modalContent: { 
-    padding: 20 
+  modalTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: "#1a1a1a",
+    textAlign: "center",
+    paddingTop: 24,
+    paddingBottom: 8,
   },
-  sectionLabel: { 
-    fontFamily: "Inter_600SemiBold", 
-    fontSize: 14, 
-    color: "#ED5514", 
-    marginBottom: 10 
+  modalContent: {
+    padding: 20,
   },
-  input: { 
-    borderColor: "#eee", 
-    borderRadius: 6, 
-    padding: 14, 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333", 
-    backgroundColor: "#fff", 
-    marginBottom: 10 
-  },
-  inputRow: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    marginBottom: 10 
-  },
-  infoIcon: { 
-    marginLeft: 8 
-  },
-  nivelBtn: { 
-    backgroundColor: "#ED5514", 
-    borderRadius: 6, 
-    padding: 14, 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "space-between", 
-    marginBottom: 10 
-  },
-  nivelBtnText: { 
-    fontFamily: "Inter_600SemiBold", 
-    fontSize: 14, 
-    color: "#fff" 
-  },
-  errosBox: { 
-    backgroundColor: "#fff3f3", 
-    borderRadius: 6, 
-    padding: 12, 
-    marginBottom: 10 
-  },
-  erroText: { 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 13, 
-    color: "#E63946", 
-    marginBottom: 2 
-  },
-  saveBtn: { 
-    backgroundColor: "#ED5514", 
-    borderRadius: 6, 
-    padding: 16, 
-    alignItems: "center", 
-    marginTop: 8 
-  },
-  saveBtnText: { 
+  sectionLabel: {
     fontFamily: "Inter_600SemiBold",
-    color: "#fff", 
-    fontSize: 15 
+    fontSize: 14,
+    color: "#ED5514",
+    marginBottom: 10,
   },
-  cancelBtn: { 
-    borderRadius: 6, 
-    padding: 16, 
-    alignItems: "center", 
-    borderWidth: 1, 
-    borderColor: "#eee", 
-    marginTop: 8 
+  input: {
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 6,
+    padding: 14,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#333",
+    backgroundColor: "#fff",
+    marginBottom: 10,
   },
-  cancelBtnText: { 
-    fontFamily: "Inter_600SemiBold", 
-    color: "#333", 
-    fontSize: 15 
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
-  nivelOverlay: { 
-    flex: 1, 
-    backgroundColor: "rgba(0,0,0,0.4)", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  infoIcon: {
+    marginLeft: 8,
   },
-  nivelCard: { 
-    width: "80%", 
-    backgroundColor: "#fff", 
-    borderRadius: 12, 
-    padding: 20 
+  nivelBtn: {
+    backgroundColor: "#ED5514",
+    borderRadius: 6,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
-  nivelCardTitle: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 16, 
-    color: "#1a1a1a", 
-    marginBottom: 16, 
-    textAlign: "center" 
+  nivelBtnText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: "#fff",
   },
-  nivelOption: { 
-    paddingVertical: 14, 
-    borderBottomWidth: 1, 
-    borderBottomColor: "#eee" 
+  errosBox: {
+    backgroundColor: "#fff3f3",
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 10,
   },
-  nivelOptionText: { 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 15, 
-    color: "#333", 
-    textAlign: "center" 
+  erroText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: "#E63946",
+    marginBottom: 2,
   },
-  nivelOptionActive: { 
-    color: "#ED5514", 
-    fontFamily: "Inter_600SemiBold" },
+  saveBtn: {
+    backgroundColor: "#ED5514",
+    borderRadius: 6,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  saveBtnText: {
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
+    fontSize: 15,
+  },
+  cancelBtn: {
+    borderRadius: 6,
+    padding: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#eee",
+    marginTop: 8,
+  },
+  cancelBtnText: {
+    fontFamily: "Inter_600SemiBold",
+    color: "#333",
+    fontSize: 15,
+  },
+  nivelOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nivelCard: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+  },
+  nivelCardTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    color: "#1a1a1a",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  nivelOption: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  nivelOptionText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    color: "#333",
+    textAlign: "center",
+  },
+  nivelOptionActive: {
+    color: "#ED5514",
+    fontFamily: "Inter_600SemiBold",
+  },
 });

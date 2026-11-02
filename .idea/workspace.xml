@@ -5,16 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b170139c-efc7-4ddc-a01d-34fb0086e73c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/markdown.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(auth)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(auth)/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/(auth)/alunos.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(auth)/alunos.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/(auth)/home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(auth)/home.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/(auth)/perfil-aluno.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(auth)/perfil-aluno.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/(auth)/perfilpro.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(auth)/perfilpro.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

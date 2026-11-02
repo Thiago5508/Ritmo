@@ -14,17 +14,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
+import { DAYS, useSchedule } from "../../context/ScheduleContext";
+import type {
+  Day,
+  LevelKey,
+  TrainingIconName,
+  Workout,
+} from "../../context/ScheduleContext";
 
-type TrainingIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
-type Day = "SEG" | "TER" | "QUA" | "QUI" | "SEX" | "SAB" | "DOM";
-type LevelKey = "sem_nivel" | "iniciante" | "intermediario" | "avancado";
-type Workout = { icon: TrainingIconName; desc1: string };
-type WeekSchedule = Record<Day, Workout>;
-type Schedule = Record<LevelKey, WeekSchedule>;
 type EventDraft = { name: string; time: string; date: string; desc: string };
 type TrainingEvent = EventDraft & { id: number };
-
-const DAYS: Day[] = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
 
 const EVENTS: Omit<TrainingEvent, "time" | "desc">[] = [
   { id: 1, name: "Circuito TV Atalaia", date: "15.06.2026" },
@@ -46,28 +45,6 @@ const LEVELS: { key: LevelKey; label: string; icon: number }[] = [
   { key: "avancado", label: "Avançado", icon: require("../../../assets/images/avancado_icon.png") },
 ];
 
-const STATS = { total: 91, sem_nivel: 0, iniciantes: 32, intermediarios: 41, avancados: 18 };
-
-const LEVELS_DISPONIVEIS = LEVELS.filter((l) => {
-  if (l.key === "sem_nivel") return STATS.sem_nivel > 0;
-  return true;
-});
-
-const buildEmptyWeek = (): WeekSchedule => {
-  const week = DAYS.reduce<Partial<WeekSchedule>>((acc, day) => {
-    acc[day] = { icon: "run", desc1: "" };
-    return acc;
-  }, {});
-  return week as WeekSchedule;
-};
-
-const INITIAL_SCHEDULE: Schedule = {
-  sem_nivel: { ...buildEmptyWeek() },
-  iniciante: { ...buildEmptyWeek(), QUA: { icon: "run", desc1: "5×100 desaquecimento\n2km na calma!" } },
-  intermediario: { ...buildEmptyWeek() },
-  avancado: { ...buildEmptyWeek() },
-};
-
 const EMPTY_EVENT: EventDraft = { name: "", time: "", date: "", desc: "" };
 
 function formatTime(text: string) {
@@ -86,17 +63,18 @@ function formatDate(text: string) {
 export default function HomeScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { nivelSchedule, setNivelWorkout, resolveWorkout } = useSchedule();
+
   const isProfessor = user?.isProfessor ?? false;
   const nivelAluno = user?.nivel ?? "iniciante";
   const nomeAluno = user?.nome ?? "";
 
   const INITIAL_LEVEL_INDEX = isProfessor
     ? 0
-    : LEVELS_DISPONIVEIS.findIndex((l) => l.key === nivelAluno);
+    : LEVELS.findIndex((l) => l.key === nivelAluno);
 
   const [selectedDay, setSelectedDay] = useState<Day>("QUA");
   const [levelIndex, setLevelIndex] = useState(INITIAL_LEVEL_INDEX >= 0 ? INITIAL_LEVEL_INDEX : 0);
-  const [schedule, setSchedule] = useState(INITIAL_SCHEDULE);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<Workout | null>(null);
   const [iconModalVisible, setIconModalVisible] = useState(false);
@@ -107,13 +85,20 @@ export default function HomeScreen() {
   const [eventDraft, setEventDraft] = useState<EventDraft>(EMPTY_EVENT);
   const [editingEventId, setEditingEventId] = useState<number | null>(null);
 
-  const currentLevel = LEVELS_DISPONIVEIS[levelIndex];
-  const currentWorkout = schedule[currentLevel.key][selectedDay];
+  const currentLevel = LEVELS[levelIndex];
+
+  // Professor vê/edita o treino do nível. Aluno vê o treino já resolvido
+  // (individual, se existir, tem prioridade sobre o do nível).
+  const resolved = isProfessor
+    ? { workout: nivelSchedule[currentLevel.key][selectedDay], source: "nivel" as const }
+    : resolveWorkout(String(user?._id), currentLevel.key, selectedDay);
+
+  const currentWorkout = resolved.workout;
   const displayed = isEditing && draft ? draft : currentWorkout;
 
   const handleLevelPress = () => {
-    if (!isProfessor) return;
-    setLevelIndex((prev) => (prev + 1) % LEVELS_DISPONIVEIS.length);
+    if (!isProfessor || isEditing) return;
+    setLevelIndex((prev) => (prev + 1) % LEVELS.length);
   };
 
   const startEditing = () => {
@@ -121,14 +106,14 @@ export default function HomeScreen() {
     setIsEditing(true);
   };
 
-  const cancelEditing = () => { setIsEditing(false); setDraft(null); };
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setDraft(null);
+  };
 
   const saveEditing = () => {
     if (!draft) return;
-    setSchedule((prev) => ({
-      ...prev,
-      [currentLevel.key]: { ...prev[currentLevel.key], [selectedDay]: draft },
-    }));
+    setNivelWorkout(currentLevel.key, selectedDay, draft);
     setIsEditing(false);
     setDraft(null);
   };
@@ -137,19 +122,22 @@ export default function HomeScreen() {
     if (isEditing) {
       setDraft((prev) => (prev ? { ...prev, icon: iconName } : prev));
     } else {
-      setSchedule((prev) => ({
-        ...prev,
-        [currentLevel.key]: {
-          ...prev[currentLevel.key],
-          [selectedDay]: { ...prev[currentLevel.key][selectedDay], icon: iconName },
-        },
-      }));
+      setNivelWorkout(currentLevel.key, selectedDay, { ...currentWorkout, icon: iconName });
     }
     setIconModalVisible(false);
   };
 
-  const openNewEvent = () => { setEventDraft(EMPTY_EVENT); setEditingEventId(null); setEventModalVisible(true); };
-  const openEditEvent = (event: TrainingEvent) => { setEventDraft({ name: event.name, time: event.time, date: event.date, desc: event.desc }); setEditingEventId(event.id); setEventModalVisible(true); };
+  const openNewEvent = () => {
+    setEventDraft(EMPTY_EVENT);
+    setEditingEventId(null);
+    setEventModalVisible(true);
+  };
+
+  const openEditEvent = (event: TrainingEvent) => {
+    setEventDraft({ name: event.name, time: event.time, date: event.date, desc: event.desc });
+    setEditingEventId(event.id);
+    setEventModalVisible(true);
+  };
 
   const saveEvent = () => {
     if (editingEventId === null) {
@@ -160,7 +148,10 @@ export default function HomeScreen() {
     setEventModalVisible(false);
   };
 
-  const deleteEvent = () => { setEvents((prev) => prev.filter((e) => e.id !== editingEventId)); setEventModalVisible(false); };
+  const deleteEvent = () => {
+    setEvents((prev) => prev.filter((e) => e.id !== editingEventId));
+    setEventModalVisible(false);
+  };
 
   return (
     <ImageBackground
@@ -170,10 +161,8 @@ export default function HomeScreen() {
     >
       <View style={styles.backgroundOverlay} />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-
         {/* Header */}
         <View style={styles.header}>
-
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => {
@@ -185,22 +174,19 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-          
-              {/* Botão para lista de alunos */}
-              <Link href="/(auth)/alunos" asChild>
-                <TouchableOpacity>
-                  <Image
-                    source={require("../../../assets/images/logo.png")}
-                    style={styles.logo}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              </Link>
 
+          <Link href="/(auth)/alunos" asChild>
+            <TouchableOpacity>
+              <Image
+                source={require("../../../assets/images/logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </Link>
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
           {/* Banner */}
           <TouchableOpacity activeOpacity={isProfessor ? 0.85 : 1} onPress={handleLevelPress}>
             <ImageBackground
@@ -212,9 +198,7 @@ export default function HomeScreen() {
               <View style={styles.overlay} />
               <View style={styles.bannerContent}>
                 <View>
-                  {!isProfessor && (
-                    <Text style={styles.bannerNome}>{nomeAluno}</Text>
-                  )}
+                  {!isProfessor && <Text style={styles.bannerNome}>{nomeAluno}</Text>}
                   <View style={styles.levelBadge}>
                     <Text style={styles.levelText}>{currentLevel.label}</Text>
                   </View>
@@ -228,8 +212,8 @@ export default function HomeScreen() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>CRONOGRAMA DE TREINO</Text>
-              {isProfessor && (
-                isEditing ? (
+              {isProfessor &&
+                (isEditing ? (
                   <View style={styles.editActionsRow}>
                     <TouchableOpacity style={styles.iconActionBtn} onPress={cancelEditing}>
                       <Feather name="x" size={18} color="#E63946" />
@@ -242,8 +226,7 @@ export default function HomeScreen() {
                   <TouchableOpacity style={styles.editBtn} onPress={startEditing}>
                     <Feather name="edit-2" size={16} color="#ED5514" />
                   </TouchableOpacity>
-                )
-              )}
+                ))}
             </View>
 
             <View style={styles.daysRow}>
@@ -267,6 +250,7 @@ export default function HomeScreen() {
               >
                 <MaterialCommunityIcons name={displayed.icon} size={32} color="#ED5514" />
               </TouchableOpacity>
+
               <View style={styles.workoutInfo}>
                 {isProfessor && isEditing ? (
                   <TextInput
@@ -282,6 +266,10 @@ export default function HomeScreen() {
                   <Text style={styles.workoutDesc}>
                     {currentWorkout.desc1 || "Nenhum treino cadastrado"}
                   </Text>
+                )}
+
+                {!isProfessor && resolved.source === "individual" && (
+                  <Text style={styles.individualTag}>Treino individual</Text>
                 )}
               </View>
             </View>
@@ -325,17 +313,15 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.tabItem}>
               <View>
                 <Image source={require("../../../assets/images/sino_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-
-                 {/* colocar as notificaçoes aqui */}
-                 
+                {/* colocar as notificações aqui */}
               </View>
             </TouchableOpacity>
           </Link>
-            <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
-              <TouchableOpacity style={styles.tabItem}>
-                <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-              </TouchableOpacity>
-            </Link>
+          <Link href={isProfessor ? "/(auth)/perfilpro" : "/(auth)/perfil-aluno"} asChild>
+            <TouchableOpacity style={styles.tabItem}>
+              <Image source={require("../../../assets/images/perfil_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            </TouchableOpacity>
+          </Link>
         </View>
 
         {/* Modal ícone treino */}
@@ -427,428 +413,307 @@ export default function HomeScreen() {
             </View>
           </View>
         </Modal>
-
       </SafeAreaView>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: { 
-    flex: 1, 
-    width: "100%", 
-    height: "100%" 
-  },
-  backgroundOverlay: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,0.2)" },
+  background: { flex: 1, width: "100%", height: "100%" },
+  backgroundOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.2)" },
   safe: { flex: 1 },
 
   header: {
-    flexDirection: "row", 
-    alignItems: "center", 
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#fff", 
-    paddingHorizontal: 8, 
+    backgroundColor: "#fff",
+    paddingHorizontal: 8,
     paddingVertical: 5,
-    marginHorizontal: 16, 
-    marginTop: 20, 
+    marginHorizontal: 16,
+    marginTop: 20,
     borderRadius: 6,
-    shadowColor: "#000", 
-    shadowOpacity: 0.06, 
-    shadowRadius: 8, 
-    shadowOffset: { width: 0, height: 2 }, 
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  backBtn: { 
-    width: 38, 
-    height: 38, 
-    borderRadius: 6, 
-    borderWidth: 1, 
-    borderColor: "#ddd", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  headerTitle: { 
-    flex: 1, 
-    textAlign: "center", 
-    fontFamily: "Inter_600SemiBold", 
-    fontSize: 14, 
-    color: "#333", 
-    marginHorizontal: 8 
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: "#333",
+    marginHorizontal: 8,
   },
-  logo: { 
-    width: 47, 
-    height: 47, 
-    borderRadius: 6 
-  },
+  logo: { width: 47, height: 47, borderRadius: 6 },
 
-  banner: { 
-    height: 90, 
-    marginHorizontal: 16, 
-    marginTop: 12, 
-    borderRadius: 6, 
-    overflow: "hidden" 
+  banner: {
+    height: 90,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 6,
+    overflow: "hidden",
   },
-  bannerImage: { 
-    width: "100%", 
-    height: "100%", 
-    borderRadius: 6 
+  bannerImage: { width: "100%", height: "100%", borderRadius: 6 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(200,80,0,0.35)" },
+  bannerContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
   },
-  overlay: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(200,80,0,0.35)" },
-  bannerContent: { 
-    flex: 1, 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "space-between", 
-    paddingHorizontal: 16 
+  bannerNome: { fontFamily: "Inter_700Bold", fontSize: 14, color: "#fff", marginBottom: 4 },
+  levelBadge: {
+    alignSelf: "flex-start",
+    borderWidth: 2,
+    borderColor: "#fff",
+    borderRadius: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 2,
+    backgroundColor: "#fff",
   },
-  bannerNome: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 14, 
-    color: "#fff", 
-    marginBottom: 4 
-  },
-  levelBadge: { 
-    alignSelf: "flex-start", 
-    borderWidth: 2, 
-    borderColor: "#fff", 
-    borderRadius: 6, 
-    paddingHorizontal: 20, 
-    paddingVertical: 2, 
-    backgroundColor: "#fff" 
-  },
-  levelText: { 
-    color: "#ED5514", 
-    fontFamily: "Inter_600SemiBold", 
-    fontSize: 12 
-  },
+  levelText: { color: "#ED5514", fontFamily: "Inter_600SemiBold", fontSize: 12 },
   bannerIcon: { height: 50 },
   scroll: { paddingBottom: 24 },
-  card: { 
-    backgroundColor: "#fff", 
-    borderRadius: 6, 
-    marginTop: 10, 
-    margin: 16, 
-    marginBottom: 0, 
-    padding: 16, 
-    shadowColor: "#000", 
-    shadowOpacity: 0.06, 
-    shadowRadius: 8, 
-    shadowOffset: { width: 0, height: 2 }, elevation: 3 },
-  cardHeader: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    marginBottom: 16 
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 6,
+    marginTop: 10,
+    margin: 16,
+    marginBottom: 0,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  cardTitle: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 14, 
-    color: "#1a1a1a", 
-    letterSpacing: 0.5 
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  editBtn: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 6, 
-    borderWidth: 1, 
-    borderColor: "#eee", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  cardTitle: { fontFamily: "Inter_700Bold", fontSize: 14, color: "#1a1a1a", letterSpacing: 0.5 },
+  editBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#eee",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  editActionsRow: { 
-    flexDirection: "row", 
-    gap: 8 
+  editActionsRow: { flexDirection: "row", gap: 8 },
+  iconActionBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#eee",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  iconActionBtn: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 6, 
-    borderWidth: 1, 
-    borderColor: "#eee", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  daysRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
+  dayBtn: {
+    width: 42,
+    height: 44,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ED5514",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  daysRow: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    marginBottom: 16 
-  },
-  dayBtn: { 
-    width: 42, 
-    height: 44, 
-    borderRadius: 6, 
-    borderWidth: 1, 
-    borderColor: "#ED5514", 
-    alignItems: "center", 
-    justifyContent: "center" 
-  },
-  dayBtnActive: { 
-    backgroundColor: "#ED5514", 
-    borderColor: "#ED5514" 
-  },
-  dayText: { 
-    fontSize: 11, 
-    fontFamily: "Inter_600SemiBold", 
-    color: "#555" 
-  },
-  dayTextActive: { 
-    color: "#fff" 
-  },
+  dayBtnActive: { backgroundColor: "#ED5514", borderColor: "#ED5514" },
+  dayText: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#555" },
+  dayTextActive: { color: "#fff" },
 
-  workoutRow: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    gap: 12 
-  },
-  workoutIconBox: { 
-    width: 74, 
-    height: 74, 
-    borderRadius: 6, 
-    borderWidth: 1.5, 
-    borderColor: "#ED5514", 
-    alignItems: "center", 
-    justifyContent: "center" 
+  workoutRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  workoutIconBox: {
+    width: 74,
+    height: 74,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: "#ED5514",
+    alignItems: "center",
+    justifyContent: "center",
   },
   workoutInfo: { flex: 1 },
-  workoutDesc: { 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333" 
+  workoutDesc: { fontFamily: "Inter_400Regular", fontSize: 14, color: "#333" },
+  workoutInput: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#333",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingVertical: 4,
+    marginBottom: 6,
   },
-  workoutInput: { 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333", 
-    borderBottomWidth: 1, 
-    borderBottomColor: "#eee", 
-    paddingVertical: 4, 
-    marginBottom: 6 
+  individualTag: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    color: "#ED5514",
+    marginTop: 6,
   },
 
-  eventRow: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    backgroundColor: "#ED5514", 
-    borderRadius: 6, 
-    padding: 14, 
-    marginBottom: 8, 
-    gap: 10 
+  eventRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ED5514",
+    borderRadius: 6,
+    padding: 14,
+    marginBottom: 8,
+    gap: 10,
   },
-  eventName: { 
-    flex: 1, 
-    fontFamily: "Inter_600SemiBold", 
-    fontSize: 14, 
-    color: "#fff" 
-  },
-  eventDateBox: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    gap: 4 
-  },
-  eventDate: { 
-    fontFamily: "Inter_500Medium", 
-    fontSize: 13, 
-    color: "#fff" 
-  },
+  eventName: { flex: 1, fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#fff" },
+  eventDateBox: { flexDirection: "row", alignItems: "center", gap: 4 },
+  eventDate: { fontFamily: "Inter_500Medium", fontSize: 13, color: "#fff" },
 
   tabBar: {
-  flexDirection: "row",
-  justifyContent: "space-around",
-  alignItems: "center",
-  paddingVertical: 12,
-  paddingBottom: 34,
-  backgroundColor: "#fff",
-},
-  tabItem: { 
-    width: 50, 
-    height: 50, 
-    backgroundColor: "#fff", 
-    borderRadius: 8, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    shadowColor: "#000", 
-    shadowOffset: { width: 0, height: 3 }, 
-    shadowOpacity: 0.15, 
-    shadowRadius: 6, 
-    elevation: 5 
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingBottom: 34,
+    backgroundColor: "#fff",
   },
-  tabItemActive: { 
-    borderWidth: 1, 
-    borderColor: "#ED5514" 
+  tabItem: {
+    width: 50,
+    height: 50,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
+  tabItemActive: { borderWidth: 1, borderColor: "#ED5514" },
   tabIcon: { width: 25 },
-  badge: { 
-    position: "absolute", 
-    top: -4, 
-    right: -4, 
-    backgroundColor: "#E63946", 
-    borderRadius: 10, 
-    minWidth: 16, 
-    height: 16, 
-    alignItems: "center", 
-    justifyContent: "center", 
-    paddingHorizontal: 3 
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  badgeText: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 10, 
-    color: "#fff" 
+  modalCard: { width: "85%", backgroundColor: "#fff", borderRadius: 10, padding: 20 },
+  modalTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    color: "#1a1a1a",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  modalIconsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
+  modalIconItem: { width: "30%", alignItems: "center", marginBottom: 16 },
+  modalIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: "#ED5514",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  modalIconLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: "#333",
+    textAlign: "center",
   },
 
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: "rgba(0,0,0,0.4)", 
-    alignItems: "center", 
-    justifyContent: "center" 
-  },
-  modalCard: { 
-    width: "85%", 
-    backgroundColor: "#fff", 
-    borderRadius: 10, 
-    padding: 20 
-  },
-  modalTitle: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 16, 
-    color: "#1a1a1a", 
-    marginBottom: 16, 
-    textAlign: "center" 
-  },
-  modalIconsGrid: { 
-    flexDirection: "row", 
-    flexWrap: "wrap", 
-    justifyContent: "space-between" 
-  },
-  modalIconItem: {
-    width: "30%", 
-    alignItems: "center", 
-    marginBottom: 16 
-  },
-  modalIconCircle: { 
-    width: 56, 
-    height: 56, 
-    borderRadius: 28, 
-    borderWidth: 1.5, 
-    borderColor: "#ED5514", 
-    alignItems: "center", 
-    justifyContent: "center", 
-    marginBottom: 6 
-  },
-  modalIconLabel: { 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 11, 
-    color: "#333", 
-    textAlign: "center" 
-  },
-
-  eventModalCard: { 
-    width: "90%", 
-    backgroundColor: "#fff", 
-    borderRadius: 12, 
-    padding: 20, 
+  eventModalCard: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
     gap: 12,
   },
-  eventModalHeader: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    marginBottom: 4 
+  eventModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
   },
-  eventModalTitle: { 
-    fontFamily: "Inter_700Bold", 
-    fontSize: 15, 
-    color: "#1a1a1a", 
-    letterSpacing: 0.5 
+  eventModalTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 15,
+    color: "#1a1a1a",
+    letterSpacing: 0.5,
   },
-  eventInputRow: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    borderWidth: 1, 
-    borderColor: "#eee", 
-    borderRadius: 8, 
-    paddingHorizontal: 12, 
-    paddingVertical: 8, 
-    gap: 8 
-  },
-  eventInput: { 
-    flex: 1, 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333" 
-  },
-  eventRowInputs: { 
-    flexDirection: "row", 
-    gap: 10 
-  },
-  eventInputBox: { 
-    flex: 1, 
+  eventInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: "#eee", 
-    borderRadius: 8, 
-    paddingHorizontal: 5, 
-    paddingVertical: 10, 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333", 
-    textAlign: "center" },
-  eventDateInput: { 
-    flex: 2, 
-    flexDirection: "row", 
-    alignItems: "center", 
-    borderWidth: 1, 
-    borderColor: "#eee", 
-    borderRadius: 8, 
-    paddingHorizontal: 12, 
-    paddingVertical: 10, 
-    gap: 6, 
-    overflow: "hidden" 
-  },
-  eventDateText: { 
-    flex: 1, 
-    flexShrink: 1, 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333" 
-  },
-  eventDescInput: { 
-    borderWidth: 1,
-    borderColor: "#eee", 
-    borderRadius: 8, 
-    padding: 12, 
-    fontFamily: "Inter_400Regular", 
-    fontSize: 14, 
-    color: "#333", 
-    minHeight: 100 },
-  saveBtn: { 
-    backgroundColor: "#ED5514", 
-    borderRadius: 8, 
-    padding: 14, 
-    alignItems: "center", 
-    marginTop: 4 
-  },
-  saveBtnText: { 
-    fontFamily: "Inter_600SemiBold", 
-    color: "#fff", 
-    fontSize: 15 
-  },
-  cancelBtn: { 
+    borderColor: "#eee",
     borderRadius: 8,
-    padding: 14, 
-    alignItems: "center" 
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
   },
-  cancelBtnText: { 
-    fontFamily: "Inter_600SemiBold", 
-    color: "#333", 
-    fontSize: 15 
+  eventInput: { flex: 1, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333" },
+  eventRowInputs: { flexDirection: "row", gap: 10 },
+  eventInputBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 10,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#333",
+    textAlign: "center",
   },
-  deleteBtn: { 
-    borderRadius: 8, 
-    padding: 14, 
-    alignItems: "center" 
+  eventDateInput: {
+    flex: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 6,
+    overflow: "hidden",
   },
-  deleteBtnText: { 
-    fontFamily: "Inter_600SemiBold", 
-    color: "#E63946", 
-    fontSize: 15 
+  eventDateText: { flex: 1, flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 14, color: "#333" },
+  eventDescInput: {
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 8,
+    padding: 12,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#333",
+    minHeight: 100,
   },
+  saveBtn: {
+    backgroundColor: "#ED5514",
+    borderRadius: 8,
+    padding: 14,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  saveBtnText: { fontFamily: "Inter_600SemiBold", color: "#fff", fontSize: 15 },
+  cancelBtn: { borderRadius: 8, padding: 14, alignItems: "center" },
+  cancelBtnText: { fontFamily: "Inter_600SemiBold", color: "#333", fontSize: 15 },
+  deleteBtn: { borderRadius: 8, padding: 14, alignItems: "center" },
+  deleteBtnText: { fontFamily: "Inter_600SemiBold", color: "#E63946", fontSize: 15 },
 });

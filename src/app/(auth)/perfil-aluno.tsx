@@ -68,15 +68,6 @@ export default function PerfilAluno() {
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       {/* Header */}
             <View style={styles.header}>
-            <TouchableOpacity
-                style={styles.backBtn}
-                onPress={() => {
-                logout();
-                router.replace("/home");
-                          }}
-                        >
-              <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
-            </TouchableOpacity>
               <Text style={styles.headerTitle}>
                 Pulsação Assessoria Esportiva
               </Text>
