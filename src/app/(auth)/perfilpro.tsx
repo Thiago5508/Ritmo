@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
 export default function PerfilProfessor() {
-  const { user, usuarios } = useAuth();
+  const { user, usuarios, logout } = useAuth();
 
   const [logoAssessoria, setLogoAssessoria] = useState<string | null>(null);
 
@@ -406,10 +406,6 @@ tabBar: {
     alignItems: "center", 
     shadowColor: "#000", 
     shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 5 },
-  tabIcon: { 
-    width: 25 
-  },
-
   tabItemActive: {
     borderWidth: 1,
     borderColor: "#ED5514",

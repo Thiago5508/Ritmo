@@ -133,7 +133,7 @@ export default function AlunosScreen() {
             <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-          {isProfessor ? (
+
             <Link href="/(auth)/alunos" asChild>
               <TouchableOpacity>
                 <Image
@@ -143,13 +143,7 @@ export default function AlunosScreen() {
                 />
               </TouchableOpacity>
             </Link>
-          ) : (
-            <Image
-              source={require("../../../assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          )}
+
         </View>
 
       {/* Barra de ações */}

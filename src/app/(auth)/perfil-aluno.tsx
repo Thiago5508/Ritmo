@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -15,7 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
 export default function PerfilAluno() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   const [fotoCapa, setFotoCapa] = useState<string | null>(null);
 
@@ -66,21 +67,30 @@ export default function PerfilAluno() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          Pulsação Assessoria Esportiva
-        </Text>
-
-        <Link href="/(auth)/alunos" asChild>
-          <TouchableOpacity>
-            <Image
-              source={require("../../../assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </Link>
-      </View>
+            <View style={styles.header}>
+            <TouchableOpacity
+                style={styles.backBtn}
+                onPress={() => {
+                logout();
+                router.replace("/home");
+                          }}
+                        >
+              <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
+            </TouchableOpacity>
+              <Text style={styles.headerTitle}>
+                Pulsação Assessoria Esportiva
+              </Text>
+               {/* Botão para lista de alunos */}
+              <Link href="/(auth)/alunos" asChild>
+                <TouchableOpacity>
+                  <Image
+                    source={require("../../../assets/images/logo.png")}
+                    style={styles.logo}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </Link>
+            </View>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -118,43 +128,6 @@ export default function PerfilAluno() {
           </View>
         </View>
 
-        {/* Dados do aluno */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>
-            Meus dados
-          </Text>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>
-              Nome
-            </Text>
-
-            <Text style={styles.infoValue}>
-              {nomeAluno}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>
-              Telefone
-            </Text>
-
-            <Text style={styles.infoValue}>
-              {telefoneAluno}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>
-              Nível
-            </Text>
-
-            <Text style={styles.infoValue}>
-              {nivelFormatado}
-            </Text>
-          </View>
-        </View>
-
         {/* Card de informações pessoais */}
         <View style={styles.card}>
           {editandoInfo ? (
@@ -163,7 +136,6 @@ export default function PerfilAluno() {
                 style={styles.input}
                 value={draftTexto}
                 onChangeText={setDraftTexto}
-                placeholder="Ex: 🥇 10k"
                 placeholderTextColor="#bbb"
                 multiline
                 textAlignVertical="top"
@@ -204,7 +176,7 @@ export default function PerfilAluno() {
           ) : (
             <>
               <Text style={styles.textoLivre}>
-                {textoLivre || "Adicione uma informação sobre você."}
+                {textoLivre || "Adicione uma informação sobre você"}
               </Text>
 
               <TouchableOpacity
@@ -279,6 +251,16 @@ const styles = StyleSheet.create({
       height: 2,
     },
     elevation: 3,
+  },
+
+backBtn: { 
+    width: 38, 
+    height: 38, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: "#ddd", 
+    alignItems: "center", 
+    justifyContent: "center" 
   },
 
   headerTitle: {

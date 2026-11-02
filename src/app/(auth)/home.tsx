@@ -173,6 +173,7 @@ export default function HomeScreen() {
 
         {/* Header */}
         <View style={styles.header}>
+
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => {
@@ -182,24 +183,20 @@ export default function HomeScreen() {
           >
             <Image source={require("../../../assets/images/exit_icon.png")} style={styles.tabIcon} resizeMode="contain" />
           </TouchableOpacity>
+
           <Text style={styles.headerTitle}>Pulsação Assessoria Esportiva</Text>
-          {isProfessor ? (
-            <Link href="/(auth)/alunos" asChild>
-              <TouchableOpacity>
-                <Image
-                  source={require("../../../assets/images/logo.png")}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </Link>
-          ) : (
-            <Image
-              source={require("../../../assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          )}
+          
+              {/* Botão para lista de alunos */}
+              <Link href="/(auth)/alunos" asChild>
+                <TouchableOpacity>
+                  <Image
+                    source={require("../../../assets/images/logo.png")}
+                    style={styles.logo}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </Link>
+
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
